@@ -15,69 +15,100 @@ class _HomePageState extends State<HomePage> {
   double get screenWidth => MediaQuery.sizeOf(context).width;
   double get screenHeight => MediaQuery.sizeOf(context).height;
   bool _isHovering = false;
+  bool _isDragging = false;
+  MouseCursor _currentCursor = SystemMouseCursors.basic;
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        body: Column(
-          children: [
-            HeaderBar(),
-            Expanded(
-              child: Stack(
-                children: [
-                  Sidebar(
-                    left: 0,
-                    right: screenWidth - _sliderWidth,
-                    top: 0,
-                    bottom: 0,
-                  ),
-                  MainContent(left: _sliderWidth, right: 0, top: 0, bottom: 0),
-                  Positioned(
-                    left: _sliderWidth - 10,
-                    width: 20,
-                    top: 0,
-                    bottom: 0,
-                    child: GestureDetector(
-                      onPanUpdate: (details) {
-                        // 核心修改：只有悬停状态下才执行拖动逻辑
-                        _sliderWidth += details.delta.dx;
-                        // 对_sliderWidth进行边界限制
-                        _sliderWidth = _sliderWidth.clamp(
-                          250.0,
-                          screenWidth - 250.0,
-                        );
-                        if (_isHovering) {
+        body: MouseRegion(
+          cursor: _currentCursor,
+          child: Flex(
+            direction: Axis.vertical,
+            children: [
+              HeaderBar(),
+              Expanded(
+                child: Stack(
+                  children: [
+                    Sidebar(
+                      left: 0,
+                      right: screenWidth - _sliderWidth,
+                      top: 0,
+                      bottom: 0,
+                    ),
+                    MainContent(
+                      left: _sliderWidth,
+                      right: 0,
+                      top: 0,
+                      bottom: 0,
+                    ),
+                    Positioned(
+                      left: _sliderWidth - 10,
+                      width: 20,
+                      top: 0,
+                      bottom: 0,
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.translucent,
+                        onPanStart: (details) {
+                          setState(() {
+                            _isDragging = true;
+                          });
+                        },
+                        onPanUpdate: (details) {
+                          _sliderWidth += details.delta.dx;
+                          // 对_sliderWidth进行边界限制
+                          _sliderWidth = _sliderWidth.clamp(
+                            250.0,
+                            screenWidth - 250.0,
+                          );
                           setState(() {});
-                        }
-                      },
-                      child: MouseRegion(
-                        // 可选：设置鼠标指针样式，提供视觉提示
-                        cursor: SystemMouseCursors.resizeLeftRight,
-                        onEnter: (event) {
-                          // 鼠标进入时，激活悬停状态
+                        },
+                        onPanEnd: (details) {
                           setState(() {
-                            _isHovering = true;
+                            _isDragging = false;
+                            if (!_isHovering) {
+                              _currentCursor = SystemMouseCursors.basic;
+                            }
                           });
                         },
-                        onExit: (event) {
-                          // 鼠标离开时，取消悬停状态
+                        onPanCancel: () {
                           setState(() {
-                            _isHovering = false;
+                            _isDragging = false;
+                            if (!_isHovering) {
+                              _currentCursor = SystemMouseCursors.basic;
+                            }
                           });
                         },
-                        child: Container(
-                          // 可选：根据悬停状态改变颜色，提供更明显的反馈
-                          color: _isHovering
-                              ? Color.fromRGBO(255, 0, 0, 0.8) // 悬停时更醒目的颜色
-                              : Color.fromRGBO(0, 0, 255, 0.5),
+                        child: MouseRegion(
+                          onEnter: (event) {
+                            setState(() {
+                              _isHovering = true;
+                              _currentCursor = SystemMouseCursors.resizeColumn;
+                            });
+                          },
+                          onExit: (event) {
+                            setState(() {
+                              _isHovering = false;
+                              if (!_isDragging) {
+                                _currentCursor = SystemMouseCursors.basic;
+                              }
+                            });
+                          },
+                          child: Container(
+                            // 可选：根据悬停状态改变颜色，提供更明显的反馈
+                            color: (_isHovering || _isDragging)
+                                ? Color.fromRGBO(255, 0, 0, 0.8) // 悬停或拖拽时更醒目的颜色
+                                : Color.fromRGBO(0, 0, 255, 0.5),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
