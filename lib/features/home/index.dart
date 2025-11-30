@@ -36,7 +36,7 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   Positioned(
                     left: 0,
-                    right: screenWidth - _sliderWidth,
+                    width: _sliderWidth,
                     top: 0,
                     bottom: 0,
                     child: Container(
