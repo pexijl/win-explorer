@@ -1,10 +1,13 @@
-// 表示目录中的一个项目，可以是文件或子目录。
+/// 文件系统实体类
+/// 
+/// 表示文件系统中的一个文件或目录。
+/// 用于封装文件/目录的基本属性，如名称、路径、大小、类型
 class FileSystemEntity {
-  final String name;
-  final String path;
-  final int size; // 对于文件是大小，对于目录通常是其下所有内容的总大小
-  final bool isDirectory; // true 表示是目录，false 表示是文件
-  final DateTime? modifiedTime;
+  final String name; /// 文件或目录的名称
+  final String path; // 文件或目录的完整路径
+  final int size; /// 文件或目录的大小，单位为字节
+  final bool isDirectory;  /// 文件或目录是否为目录
+  final DateTime? modifiedTime; /// 文件或目录的修改时间
 
   FileSystemEntity({
     required this.name,

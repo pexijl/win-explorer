@@ -1,9 +1,10 @@
 import 'dart:io' as io;
-import 'package:path/path.dart' as p;
+import 'package:path/path.dart' as path_utils;
 
 import 'file_system_entity .dart';
 
-/// 表示文件系统中的一个目录。
+/// 目录实体类
+///
 /// 用于封装目录路径，并提供列举内容、计算大小等操作。
 class Directory {
   /// 目录的完整路径。
@@ -25,7 +26,7 @@ class Directory {
   String get absolutePath => _ioDirectory.absolute.path;
 
   /// 获取目录的名称（路径的最后一部分）。
-  String get name => p.basename(_ioDirectory.absolute.path);
+  String get name => path_utils.basename(_ioDirectory.absolute.path);
 
   /// 获取父目录的 Directory 对象。
   /// 如果已经是根目录，则返回 null。
@@ -38,6 +39,9 @@ class Directory {
     return Directory(parentPath);
   }
 
+  /// 列出目录中的所有文件和子目录。
+  ///
+  /// [loadMetadata]: 是否加载文件的元数据（如修改时间等），默认为 false。
   Future<List<FileSystemEntity>> listEntities({
     bool loadMetadata = false,
   }) async {
@@ -57,7 +61,7 @@ class Directory {
 
         results.add(
           FileSystemEntity(
-            name: p.basename(entity.path),
+            name: path_utils.basename(entity.path),
             path: entity.path,
             size: await _getEntitySize(stat, entity), // 计算大小
             isDirectory: stat.type == io.FileSystemEntityType.directory,
