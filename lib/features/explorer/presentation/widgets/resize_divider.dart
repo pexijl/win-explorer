@@ -70,11 +70,11 @@ class _ResizeDividerState extends State<ResizeDivider> {
               }
             });
           },
-          child: Container(
-            color: (_isHovering || _isDragging)
-                ? Color.fromRGBO(255, 0, 0, 0.8)
-                : Color.fromRGBO(0, 0, 255, 0.5),
-          ),
+          // child: Container(
+          //   color: (_isHovering || _isDragging)
+          //       ? Color.fromRGBO(255, 0, 0, 0.8)
+          //       : Color.fromRGBO(0, 0, 255, 0.5),
+          // ),
         ),
       ),
     );

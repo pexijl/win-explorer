@@ -6,11 +6,16 @@ class MainContent extends StatefulWidget {
   final double _top;
   final double _bottom;
 
-  const MainContent({super.key, required double left, required double right, required double top, required double bottom})
-      : _left = left,
-        _right = right,
-        _top = top,
-        _bottom = bottom;
+  const MainContent({
+    super.key,
+    required double left,
+    required double right,
+    required double top,
+    required double bottom,
+  }) : _left = left,
+       _right = right,
+       _top = top,
+       _bottom = bottom;
 
   @override
   State<MainContent> createState() => _MainContentState();
