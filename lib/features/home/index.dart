@@ -50,8 +50,12 @@ class _HomePageState extends State<HomePage> {
                           double screenWidth = MediaQuery.of(
                             context,
                           ).size.width;
-                          double deltaX = details.globalPosition.dx - _initialGlobalX!;
-                          _sliderWidth = (_initialWidth! + deltaX).clamp(250, screenWidth - 250);
+                          double deltaX =
+                              details.globalPosition.dx - _initialGlobalX!;
+                          _sliderWidth = (_initialWidth! + deltaX).clamp(
+                            250,
+                            screenWidth - 250,
+                          );
                         });
                       }
                     },
