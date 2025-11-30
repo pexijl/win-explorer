@@ -36,7 +36,14 @@ class _HomePageState extends State<HomePage> {
                   GestureDetector(
                     onPanUpdate: (details) {
                       setState(() {
+                        double screenWidth = MediaQuery.of(context).size.width; // Get the width of the screen
+                        if (_sliderWidth < 250) {
+                          _sliderWidth = 250; // Minimum width
+                        } else if (_sliderWidth > screenWidth - 250) {
+                          _sliderWidth = screenWidth - 250; // Maximum width
+                        }
                         _sliderWidth += details.delta.dx;
+
                       });
                     },
                     child: Container(
