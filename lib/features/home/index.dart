@@ -9,10 +9,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   double _sliderWidth = 250;
-  double? _dragStartX;
-  double? _initialWidth;
-  double? _initialGlobalX;
-
+  double get screenWidth => MediaQuery.sizeOf(context).width;
+  double get screenHeight => MediaQuery.sizeOf(context).height;
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -34,46 +32,54 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             Expanded(
-              child: Row(
+              child: Stack(
                 children: [
-                  GestureDetector(
-                    onPanStart: (details) {
-                      _dragStartX = details.localPosition.dx;
-                      if (_dragStartX! > _sliderWidth - 10) {
-                        _initialWidth = _sliderWidth;
-                        _initialGlobalX = details.globalPosition.dx;
-                      }
-                    },
-                    onPanUpdate: (details) {
-                      if (_initialWidth != null && _initialGlobalX != null) {
-                        setState(() {
-                          double screenWidth = MediaQuery.of(
-                            context,
-                          ).size.width;
-                          double deltaX =
-                              details.globalPosition.dx - _initialGlobalX!;
-                          _sliderWidth = (_initialWidth! + deltaX).clamp(
-                            250,
-                            screenWidth - 250,
-                          );
-                        });
-                      }
-                    },
-                    onPanEnd: (details) {
-                      _dragStartX = null;
-                      _initialWidth = null;
-                      _initialGlobalX = null;
-                    },
+                  Positioned(
+                    left: 0,
+                    right: screenWidth - _sliderWidth,
+                    top: 0,
+                    bottom: 0,
                     child: Container(
-                      width: _sliderWidth,
-                      color: Colors.grey[200],
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        border: Border.all(color: Colors.black, width: 1),
+                      ),
                       child: const Center(child: Text('Sidebar')),
                     ),
                   ),
-                  Expanded(
+                  Positioned(
+                    left: _sliderWidth,
+                    right: 0,
+                    top: 0,
+                    bottom: 0,
                     child: Container(
-                      color: Colors.white,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        border: Border.all(color: Colors.black, width: 1),
+                      ),
                       child: const Center(child: Text('Main Content Area')),
+                    ),
+                  ),
+                  Positioned(
+                    left: _sliderWidth - 10,
+                    width: 20,
+                    top: 0,
+                    bottom: 0,
+                    child: GestureDetector(
+                      onPanUpdate: (details) {
+                        setState(() {
+                          _sliderWidth += details.delta.dx;
+                          double screenWidth = MediaQuery.of(
+                            context,
+                          ).size.width;
+                          if (_sliderWidth < 250) {
+                            _sliderWidth = 250;
+                          } else if (_sliderWidth > screenWidth - 250) {
+                            _sliderWidth = screenWidth - 250;
+                          }
+                        });
+                      },
+                      child: Container(color: Color.fromRGBO(0, 0, 255, 0.5)),
                     ),
                   ),
                 ],
