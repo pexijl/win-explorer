@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:win_explorer/data/services/win32_service.dart';
 
 class Sidebar extends StatefulWidget {
   final double _left;
@@ -21,6 +22,23 @@ class Sidebar extends StatefulWidget {
 }
 
 class _SidebarState extends State<Sidebar> {
+  List<String> drives = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _getDrives();
+  }
+
+  void _getDrives() {
+    drives = Win32Service().getDriveList();
+    for (int i = 0; i < drives.length; i++) {
+      if (drives[i].endsWith('\\')) {
+        drives[i] = drives[i].substring(0, drives[i].length - 1);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Positioned(
@@ -29,11 +47,17 @@ class _SidebarState extends State<Sidebar> {
       top: widget._top,
       bottom: widget._bottom,
       child: Container(
+        alignment: Alignment.center,
         decoration: BoxDecoration(
           color: Colors.grey[300],
           border: Border.all(color: Colors.black, width: 1),
         ),
-        child: const Center(child: Text('Sidebar')),
+        child: ListView.builder(
+          itemCount: drives.length,
+          itemBuilder: (context, index) {
+            return ListTile(title: Text(drives[index]));
+          },
+        ),
       ),
     );
   }
