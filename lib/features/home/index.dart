@@ -8,6 +8,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  double _sliderWidth = 250;
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -31,10 +33,17 @@ class _HomePageState extends State<HomePage> {
             Expanded(
               child: Row(
                 children: [
-                  Container(
-                    width: 250,
-                    color: Colors.grey[200],
-                    child: const Center(child: Text('Sidebar')),
+                  GestureDetector(
+                    onPanUpdate: (details) {
+                      setState(() {
+                        _sliderWidth += details.delta.dx;
+                      });
+                    },
+                    child: Container(
+                      width: _sliderWidth,
+                      color: Colors.grey[200],
+                      child: const Center(child: Text('Sidebar')),
+                    ),
                   ),
                   Expanded(
                     child: Container(
