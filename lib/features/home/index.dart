@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:win_explorer/features/explorer/presentation/widgets/resizeDivider.dart';
+import 'package:win_explorer/core/constants/global_constants.dart';
+import 'package:win_explorer/features/explorer/presentation/widgets/resize_divider.dart';
 import 'package:win_explorer/features/headerBar/index.dart';
 import 'package:win_explorer/features/mainContent/index.dart';
 import 'package:win_explorer/features/sidebar/index.dart';
@@ -12,7 +13,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  double _sliderWidth = 250;
+  double _sliderWidth = GlobalConstants.sliderMinWidth;
   double get screenWidth => MediaQuery.sizeOf(context).width;
   double get screenHeight => MediaQuery.sizeOf(context).height;
   MouseCursor _currentCursor = SystemMouseCursors.basic;
