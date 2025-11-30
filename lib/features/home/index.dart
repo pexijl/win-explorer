@@ -69,9 +69,9 @@ class _HomePageState extends State<HomePage> {
                     child: GestureDetector(
                       onPanUpdate: (details) {
                         // 核心修改：只有悬停状态下才执行拖动逻辑
+                        _sliderWidth += details.delta.dx;
                         if (_isHovering) {
                           setState(() {
-                            _sliderWidth += details.delta.dx;
                             double screenWidth = MediaQuery.of(
                               context,
                             ).size.width;
