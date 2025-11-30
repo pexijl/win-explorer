@@ -11,6 +11,7 @@ class _HomePageState extends State<HomePage> {
   double _sliderWidth = 250;
   double get screenWidth => MediaQuery.sizeOf(context).width;
   double get screenHeight => MediaQuery.sizeOf(context).height;
+  bool _isHovering = false;
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -67,19 +68,43 @@ class _HomePageState extends State<HomePage> {
                     bottom: 0,
                     child: GestureDetector(
                       onPanUpdate: (details) {
-                        setState(() {
-                          _sliderWidth += details.delta.dx;
-                          double screenWidth = MediaQuery.of(
-                            context,
-                          ).size.width;
-                          if (_sliderWidth < 250) {
-                            _sliderWidth = 250;
-                          } else if (_sliderWidth > screenWidth - 250) {
-                            _sliderWidth = screenWidth - 250;
-                          }
-                        });
+                        // 核心修改：只有悬停状态下才执行拖动逻辑
+                        if (_isHovering) {
+                          setState(() {
+                            _sliderWidth += details.delta.dx;
+                            double screenWidth = MediaQuery.of(
+                              context,
+                            ).size.width;
+                            // 对_sliderWidth进行边界限制
+                            _sliderWidth = _sliderWidth.clamp(
+                              250.0,
+                              screenWidth - 250.0,
+                            );
+                          });
+                        }
                       },
-                      child: Container(color: Color.fromRGBO(0, 0, 255, 0.5)),
+                      child: MouseRegion(
+                        // 可选：设置鼠标指针样式，提供视觉提示
+                        cursor: SystemMouseCursors.resizeLeftRight,
+                        onEnter: (event) {
+                          // 鼠标进入时，激活悬停状态
+                          setState(() {
+                            _isHovering = true;
+                          });
+                        },
+                        onExit: (event) {
+                          // 鼠标离开时，取消悬停状态
+                          setState(() {
+                            _isHovering = false;
+                          });
+                        },
+                        child: Container(
+                          // 可选：根据悬停状态改变颜色，提供更明显的反馈
+                          color: _isHovering
+                              ? Color.fromRGBO(255, 0, 0, 0.8) // 悬停时更醒目的颜色
+                              : Color.fromRGBO(0, 0, 255, 0.5),
+                        ),
+                      ),
                     ),
                   ),
                 ],
