@@ -47,8 +47,9 @@ lib/
 │   │   │   ├── widgets/       # 局部组件 (FileList, FileGrid, Breadcrumb)
 │   │   │   └── dialogs/       # 弹窗 (重命名, 属性)
 │   │   └── logic/             # 状态管理 (ExplorerController/Bloc - 处理当前路径、选中状态)
-│   ├── sidebar/               # 左侧导航栏 (快速访问, 磁盘列表)
 │   ├── headerBar              # 标题栏(显示当前信息，提供窗口控制按钮，显示当前路径，地址栏，菜单栏)
+│   ├── sidebar/               # 左侧导航栏 (快速访问, 磁盘列表)
+│   ├── mainContent/           # 主内容区域 (文件列表, 预览面板)
 │   ├── preview/               # 预览面板 (图片, 文本预览逻辑)
 │   ├── search/                # 搜索功能
 │   └── settings/              # 设置页面

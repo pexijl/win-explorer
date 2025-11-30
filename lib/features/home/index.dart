@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:win_explorer/features/mainContent/index.dart';
 import 'package:win_explorer/features/sidebar/index.dart';
 
 class HomePage extends StatefulWidget {
@@ -36,20 +37,13 @@ class _HomePageState extends State<HomePage> {
             Expanded(
               child: Stack(
                 children: [
-                  Sidebar(sliderWidth: _sliderWidth),
-                  Positioned(
-                    left: _sliderWidth,
-                    right: 0,
+                  Sidebar(
+                    left: 0,
+                    right: screenWidth - _sliderWidth,
                     top: 0,
                     bottom: 0,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border.all(color: Colors.black, width: 1),
-                      ),
-                      child: const Center(child: Text('Main Content Area')),
-                    ),
                   ),
+                  MainContent(left: _sliderWidth, right: 0, top: 0, bottom: 0),
                   Positioned(
                     left: _sliderWidth - 10,
                     width: 20,

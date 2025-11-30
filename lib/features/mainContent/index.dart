@@ -1,26 +1,22 @@
 import 'package:flutter/material.dart';
 
-class Sidebar extends StatefulWidget {
+class MainContent extends StatefulWidget {
   final double _left;
   final double _right;
   final double _top;
   final double _bottom;
 
-  const Sidebar({
-    super.key,
-    required double left,
-    required double right,
-    required double top,
-    required double bottom,
-  }) : _left = left,
-       _right = right,
-       _top = top,
-       _bottom = bottom;
+  const MainContent({super.key, required double left, required double right, required double top, required double bottom})
+      : _left = left,
+        _right = right,
+        _top = top,
+        _bottom = bottom;
+
   @override
-  State<Sidebar> createState() => _SidebarState();
+  State<MainContent> createState() => _MainContentState();
 }
 
-class _SidebarState extends State<Sidebar> {
+class _MainContentState extends State<MainContent> {
   @override
   Widget build(BuildContext context) {
     return Positioned(
@@ -30,10 +26,10 @@ class _SidebarState extends State<Sidebar> {
       bottom: widget._bottom,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.grey[300],
+          color: Colors.white,
           border: Border.all(color: Colors.black, width: 1),
         ),
-        child: const Center(child: Text('Sidebar')),
+        child: const Center(child: Text('Main Content Area')),
       ),
     );
   }
