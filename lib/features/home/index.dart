@@ -9,6 +9,9 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   double _sliderWidth = 250;
+  double? _dragStartX;
+  double? _initialWidth;
+  double? _initialGlobalX;
 
   @override
   Widget build(BuildContext context) {
@@ -34,17 +37,28 @@ class _HomePageState extends State<HomePage> {
               child: Row(
                 children: [
                   GestureDetector(
+                    onPanStart: (details) {
+                      _dragStartX = details.localPosition.dx;
+                      if (_dragStartX! > _sliderWidth - 10) {
+                        _initialWidth = _sliderWidth;
+                        _initialGlobalX = details.globalPosition.dx;
+                      }
+                    },
                     onPanUpdate: (details) {
-                      setState(() {
-                        double screenWidth = MediaQuery.of(context).size.width; // Get the width of the screen
-                        if (_sliderWidth < 250) {
-                          _sliderWidth = 250; // Minimum width
-                        } else if (_sliderWidth > screenWidth - 250) {
-                          _sliderWidth = screenWidth - 250; // Maximum width
-                        }
-                        _sliderWidth += details.delta.dx;
-
-                      });
+                      if (_initialWidth != null && _initialGlobalX != null) {
+                        setState(() {
+                          double screenWidth = MediaQuery.of(
+                            context,
+                          ).size.width;
+                          double deltaX = details.globalPosition.dx - _initialGlobalX!;
+                          _sliderWidth = (_initialWidth! + deltaX).clamp(250, screenWidth - 250);
+                        });
+                      }
+                    },
+                    onPanEnd: (details) {
+                      _dragStartX = null;
+                      _initialWidth = null;
+                      _initialGlobalX = null;
                     },
                     child: Container(
                       width: _sliderWidth,
