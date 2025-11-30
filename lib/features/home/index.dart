@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:win_explorer/features/headerBar/index.dart';
 import 'package:win_explorer/features/mainContent/index.dart';
 import 'package:win_explorer/features/sidebar/index.dart';
 
@@ -20,20 +21,7 @@ class _HomePageState extends State<HomePage> {
       home: Scaffold(
         body: Column(
           children: [
-            Container(
-              height: 120,
-              color: Colors.blue,
-              child: Center(
-                child: Text(
-                  'Win Explorer',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
+            HeaderBar(),
             Expanded(
               child: Stack(
                 children: [
@@ -51,19 +39,15 @@ class _HomePageState extends State<HomePage> {
                     bottom: 0,
                     child: GestureDetector(
                       onPanUpdate: (details) {
-                        _sliderWidth += details.delta.dx;
                         // 核心修改：只有悬停状态下才执行拖动逻辑
+                        _sliderWidth += details.delta.dx;
+                        // 对_sliderWidth进行边界限制
+                        _sliderWidth = _sliderWidth.clamp(
+                          250.0,
+                          screenWidth - 250.0,
+                        );
                         if (_isHovering) {
-                          setState(() {
-                            double screenWidth = MediaQuery.of(
-                              context,
-                            ).size.width;
-                            // 对_sliderWidth进行边界限制
-                            _sliderWidth = _sliderWidth.clamp(
-                              250.0,
-                              screenWidth - 250.0,
-                            );
-                          });
+                          setState(() {});
                         }
                       },
                       child: MouseRegion(
