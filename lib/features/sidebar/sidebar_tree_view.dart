@@ -42,7 +42,7 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
             .map(
               (node) => SidebarTreeNodeWidget(
                 node: node,
-                isSelected: _selectedNode == node, // 传递选中状态
+                isSelected: _selectedNode == node,
                 onTap: () => _handleNodeTap(node),
               ),
             )

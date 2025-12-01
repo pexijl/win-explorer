@@ -68,7 +68,9 @@ class _SidebarTreeNodeWidgetState extends State<SidebarTreeNodeWidget> {
               ),
               TextButton(
                 onPressed: () {
-                  setState(() {});
+                  setState(() {
+                    widget.onTap?.call();
+                  });
                 },
                 child: Text(widget.node.name),
               ),
