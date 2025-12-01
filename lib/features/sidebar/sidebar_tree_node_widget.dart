@@ -54,7 +54,7 @@ class _SidebarTreeNodeWidgetState extends State<SidebarTreeNodeWidget> {
             children: [
               // 显示展开/折叠图标（如果有子节点）
               if (widget.node.hasChildren)
-                Container(
+                SizedBox(
                   width: 30,
                   child: IconButton(
                     // hoverColor: Colors.transparent,
