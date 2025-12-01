@@ -44,7 +44,6 @@ class _SidebarState extends State<Sidebar> {
       top: widget._top,
       bottom: widget._bottom,
       child: Container(
-        alignment: Alignment.center,
         decoration: BoxDecoration(
           color: Colors.grey[300],
           border: Border.all(color: Colors.black, width: 1),

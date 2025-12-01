@@ -26,7 +26,7 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
   void initState() {
     super.initState();
     // 初始化节点数据
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 5; i++) {
       nodes.add(SidebarTreeNode(name: '目录项 $i', path: '路径 $i'));
     }
   }
