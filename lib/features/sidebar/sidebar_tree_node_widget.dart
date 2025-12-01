@@ -85,7 +85,7 @@ class _SidebarTreeNodeWidgetState extends State<SidebarTreeNodeWidget> {
                   textStyle: TextStyle(color: Colors.black),
                 ),
                 onPressed: widget.onTap ?? widget.node.onTap,
-                child: Text(widget.node.name),
+                child: Text(widget.node.name ?? '无效'),
               ),
             ],
           ),
