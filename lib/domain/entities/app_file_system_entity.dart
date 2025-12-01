@@ -77,11 +77,11 @@ class AppFileSystemEntity {
 
   /// 转换为 AppFile（如果是文件）
   AppFile? get asAppFile =>
-      _typedEntity is AppFile ? _typedEntity as AppFile : null;
+      _typedEntity is AppFile ? _typedEntity : null;
 
   /// 转换为 AppDirectory（如果是目录）
   AppDirectory? get asAppDirectory =>
-      _typedEntity is AppDirectory ? _typedEntity as AppDirectory : null;
+      _typedEntity is AppDirectory ? _typedEntity : null;
 
   /// 安全转换为 AppFile
   Future<AppFile> toAppFile() async {
@@ -130,7 +130,7 @@ class AppFileSystemEntity {
   /// 检查是否为空
   Future<bool> get isEmpty async {
     if (_typedEntity is AppFile) {
-      return await (_typedEntity as AppFile).isEmpty;
+      return await (_typedEntity).isEmpty;
     } else {
       return await (_typedEntity as AppDirectory).isEmpty;
     }

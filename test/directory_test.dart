@@ -12,11 +12,11 @@ void main() {
     Drive driveC = drives[0];
     AppDirectory directory1 = AppDirectory(driveC.mountPoint);
     List<AppFileSystemEntity> entities = await directory1.listAppEntities();
-    print(entities);
+    for (AppFileSystemEntity entity in entities) {
+      print(entity.name + " " + (await entity.type).toString());
+    }
     Drive driveG = drives[1];
   });
 
-  test("2", () async {
-
-  });
+  test("2", () async {});
 }
