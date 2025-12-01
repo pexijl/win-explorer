@@ -12,7 +12,7 @@ class _HeaderBarState extends State<HeaderBar> {
   Widget build(BuildContext context) {
     return Container(
       height: 120,
-      color: Colors.blue,
+      color: Colors.blueGrey,
       child: Center(
         child: Text(
           'Win Explorer',
