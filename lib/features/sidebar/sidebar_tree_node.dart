@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 class SidebarTreeNode {
   /// 节点名称
   final String name;
@@ -17,19 +19,21 @@ class SidebarTreeNode {
   /// 子节点
   final List<SidebarTreeNode>? children;
 
+  // onTap 回调函数
+  final VoidCallback? onTap;
+
   SidebarTreeNode({
     required this.name,
     required this.path,
     this.isExpanded = false,
     this.isHovered = false,
     this.children,
+    this.onTap,
   });
 
   bool get hasChildren => children != null && children!.isNotEmpty;
 
   bool get isSelected => _isSelected;
-
-  get onTap => null;
 
   void select() {
     _isSelected = true;

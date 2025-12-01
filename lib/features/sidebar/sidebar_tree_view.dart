@@ -15,7 +15,6 @@ class SidebarTreeView extends StatefulWidget {
 class _SidebarTreeViewState extends State<SidebarTreeView> {
   List<Widget> treeItems = [];
   SidebarTreeNode? _selectedNode;
-  int _selectedIndex = -1;
 
   List<Widget> _getTreeItems() {
     treeItems.clear();

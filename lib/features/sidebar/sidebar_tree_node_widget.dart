@@ -31,9 +31,9 @@ class _SidebarTreeNodeWidgetState extends State<SidebarTreeNodeWidget> {
           height: 30,
           decoration: BoxDecoration(
             color: widget.node.isSelected
-                ? Colors.blueAccent.withOpacity(0.5)
+                ? Colors.blueAccent.withValues(alpha: 0.5)
                 : widget.node.isHovered
-                ? Colors.grey.withOpacity(0.3)
+                ? Colors.grey.withValues(alpha: 0.3)
                 : Colors.transparent,
             border: Border.all(color: Colors.redAccent),
           ),
