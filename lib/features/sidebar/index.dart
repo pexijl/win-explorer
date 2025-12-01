@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:win_explorer/data/services/win32_drive_service.dart';
+import 'package:win_explorer/domain/entities/app_directory.dart';
 import 'package:win_explorer/domain/entities/drive.dart';
 import 'package:win_explorer/features/sidebar/sidebar_tree_view.dart';
 
@@ -8,6 +9,7 @@ class Sidebar extends StatefulWidget {
   final double _right;
   final double _top;
   final double _bottom;
+  final Function(AppDirectory) onDirectorySelected;
 
   const Sidebar({
     super.key,
@@ -15,6 +17,7 @@ class Sidebar extends StatefulWidget {
     required double right,
     required double top,
     required double bottom,
+    required this.onDirectorySelected,
   }) : _left = left,
        _right = right,
        _top = top,
@@ -48,7 +51,10 @@ class _SidebarState extends State<Sidebar> {
           color: Colors.grey[300],
           border: Border.all(color: Colors.black, width: 1),
         ),
-        child: SidebarTreeView(drives: drives),
+        child: SidebarTreeView(
+          drives: drives,
+          onNodeSelected: (node) => widget.onDirectorySelected(node.appDirectory),
+        ),
       ),
     );
   }

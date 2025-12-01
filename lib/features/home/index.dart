@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:win_explorer/core/constants/global_constants.dart';
+import 'package:win_explorer/domain/entities/app_directory.dart';
 import 'package:win_explorer/shared/widgets/resize_divider.dart';
 import 'package:win_explorer/features/headerBar/index.dart';
 import 'package:win_explorer/features/mainContent/index.dart';
@@ -17,6 +18,7 @@ class _HomePageState extends State<HomePage> {
   double get screenWidth => MediaQuery.sizeOf(context).width;
   double get screenHeight => MediaQuery.sizeOf(context).height;
   MouseCursor _currentCursor = SystemMouseCursors.basic;
+  AppDirectory? _currentDirectory;
 
   @override
   Widget build(BuildContext context) {
@@ -36,12 +38,18 @@ class _HomePageState extends State<HomePage> {
                       right: screenWidth - _sliderWidth,
                       top: 0,
                       bottom: 0,
+                      onDirectorySelected: (directory) {
+                        setState(() {
+                          _currentDirectory = directory;
+                        });
+                      },
                     ),
                     MainContent(
                       left: _sliderWidth,
                       right: 0,
                       top: 0,
                       bottom: 0,
+                      directory: _currentDirectory,
                     ),
                     ResizeDivider(
                       left: _sliderWidth,

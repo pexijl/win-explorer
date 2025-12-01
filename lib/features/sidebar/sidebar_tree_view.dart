@@ -7,10 +7,12 @@ import 'package:win_explorer/features/sidebar/sidebar_tree_node_widget.dart';
 
 class SidebarTreeView extends StatefulWidget {
   final List<Drive> drives;
+  final Function(SidebarTreeNode)? onNodeSelected;
 
   const SidebarTreeView({
     super.key,
     required this.drives,
+    this.onNodeSelected,
   });
 
   @override
@@ -45,6 +47,7 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
     setState(() {
       _selectedNode = selectedNode;
     });
+    widget.onNodeSelected?.call(selectedNode);
   }
 
   @override
