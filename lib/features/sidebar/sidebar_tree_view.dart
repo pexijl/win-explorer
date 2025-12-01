@@ -30,7 +30,9 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
       subNodes.add(SidebarTreeNode(name: '子目录项 $i', path: '子路径 $i'));
     }
     for (int i = 0; i < 5; i++) {
-      nodes.add(SidebarTreeNode(name: '目录项 $i', path: '路径 $i', children: subNodes));
+      nodes.add(
+        SidebarTreeNode(name: '目录项 $i', path: '路径 $i', children: subNodes),
+      );
     }
   }
 
@@ -41,6 +43,7 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
       scrollDirection: Axis.vertical,
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: nodes
             .map(
               (node) => SidebarTreeNodeWidget(
