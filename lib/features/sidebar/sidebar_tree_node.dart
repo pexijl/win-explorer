@@ -19,7 +19,10 @@ class SidebarTreeNode {
   List<SidebarTreeNode>? children;
 
   /// 是否有子节点
-  bool hasChildren = false;
+  bool _hasChildren = false;
+  
+  // 提供 getter 方法确保每次获取最新状态
+  bool get hasChildren => _hasChildren;
 
   // onTap 回调函数
   final VoidCallback? onTap;
@@ -32,7 +35,7 @@ class SidebarTreeNode {
     this.onTap,
     String? name,
   }) : name = name ?? appDirectory.name {
-    getHasChildren();
+    _updateHasChildren();
   }
 
   SidebarTreeNode.fromDrive({
@@ -50,24 +53,45 @@ class SidebarTreeNode {
          name: drive.name,
        );
 
-  /// 获取子节点
-  Future<void> getChildren() async {
-    List<AppDirectory> subdirs = await appDirectory.getSubdirectories();
-    children = subdirs
-        .map((subdir) => SidebarTreeNode(appDirectory: subdir))
-        .toList();
+  /// 动态检查是否有子目录
+  Future<void> _updateHasChildren() async {
+    try {
+      // 检查是否存在子目录（而不是所有文件）
+      final subDirs = await appDirectory.getSubdirectories(recursive: false);
+      _hasChildren = subDirs.isNotEmpty;
+    } catch (e) {
+      _hasChildren = false;
+    }
   }
 
-  Future<void> getHasChildren() async {
-    if (children != null && children!.isNotEmpty) {
-      hasChildren = true;
-      return;
+  /// 获取子节点
+  Future<void> getChildren() async {
+    try {
+      List<AppDirectory> subdirs = await appDirectory.getSubdirectories(recursive: false);
+      children = subdirs
+          .map((subdir) => SidebarTreeNode(appDirectory: subdir))
+          .toList();
+      // 更新 hasChildren 状态
+      _hasChildren = children != null && children!.isNotEmpty;
+    } catch (e) {
+      children = [];
+      _hasChildren = false;
     }
-    hasChildren = !(await appDirectory.isEmpty);
+  }
+
+  /// 切换展开状态时重新检查子节点
+  Future<void> toggleExpanded() async {
+    isExpanded = !isExpanded;
+    if (isExpanded && (children == null || children!.isEmpty)) {
+      await getChildren();
+    } else if (isExpanded) {
+      // 即使已有 children，也重新检查以确保准确性
+      await _updateHasChildren();
+    }
   }
 
   @override
   String toString() {
-    return 'SidebarTreeNode{appDirectory: $appDirectory, name: $name, isExpanded: $isExpanded, isHovered: $isHovered, children: $children, onTap: $onTap}';
+    return 'SidebarTreeNode{appDirectory: $appDirectory, name: $name, isExpanded: $isExpanded, isHovered: $isHovered, children: $children}';
   }
 }

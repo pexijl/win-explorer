@@ -26,7 +26,7 @@ class _SidebarTreeNodeWidgetState extends State<SidebarTreeNodeWidget> {
     super.initState();
     // 在初始化阶段预加载是否有子节点的信息
     if (!widget.node.hasChildren) {
-      widget.node.getHasChildren().then((_) {
+      widget.node.getChildren().then((_) {
         if (mounted) {
           setState(() {});
         }
@@ -58,8 +58,8 @@ class _SidebarTreeNodeWidgetState extends State<SidebarTreeNodeWidget> {
             color: widget.isSelected
                 ? Colors.blueAccent.withValues(alpha: 0.5)
                 : widget.node.isHovered
-                    ? Colors.grey.withValues(alpha: 0.3)
-                    : Colors.transparent,
+                ? Colors.grey.withValues(alpha: 0.3)
+                : Colors.transparent,
             border: Border.all(color: Colors.redAccent),
           ),
           child: Row(
@@ -76,10 +76,14 @@ class _SidebarTreeNodeWidgetState extends State<SidebarTreeNodeWidget> {
                           ? Icons.keyboard_arrow_down
                           : Icons.chevron_right,
                     ),
-                    onPressed: () {
-                      setState(() {
-                        widget.node.isExpanded = !widget.node.isExpanded;
-                      });
+                    onPressed: () async {
+                      // 先切换状态
+                      await widget.node.toggleExpanded();
+
+                      // 然后更新UI
+                      if (mounted) {
+                        setState(() {});
+                      }
                     },
                   ),
                 )

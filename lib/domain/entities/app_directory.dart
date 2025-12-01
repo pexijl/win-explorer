@@ -271,7 +271,11 @@ class AppDirectory {
       final directories = <AppDirectory>[];
       await for (final entity in _directory.list(recursive: recursive)) {
         if (entity is Directory) {
-          directories.add(AppDirectory.fromDirectory(entity));
+          // 只添加实际存在的目录
+          final appDir = AppDirectory.fromDirectory(entity);
+          if (await appDir.exists) {
+            directories.add(appDir);
+          }
         }
       }
       return directories;
