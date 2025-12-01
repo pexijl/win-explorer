@@ -1,3 +1,5 @@
+import 'package:win_explorer/domain/entities/app_directory.dart';
+
 /// 表示一个物理或逻辑驱动器（如 C:\, D:\）
 class Drive {
   /// 驱动器的唯一标识符（例如："C:" 或 "PhysicalDrive0"）
@@ -27,6 +29,15 @@ class Drive {
   /// 驱动器是否就绪可用（如光盘驱动器中无光盘则为 false）
   final bool isReady;
 
+  /// 驱动器是否展开（用于 UI 展示状态）
+  final bool isExpanded;
+
+  /// 驱动器是否被选中（用于 UI 状态）
+  final bool isSelected;
+
+  /// 驱动器下的目录列表（可选）
+  final List<AppDirectory> appDirectories;
+
   /// 创建一个驱动器实例
   Drive({
     required this.id,
@@ -38,6 +49,9 @@ class Drive {
     required this.fileSystem,
     required this.isWritable,
     required this.isReady,
+    this.isExpanded = false,
+    this.isSelected = false,
+    this.appDirectories = const [],
   });
 
   /// 从 Map 数据（例如从平台通道或 JSON 解析）创建 Drive 实例的工厂构造函数

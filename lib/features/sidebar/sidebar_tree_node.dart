@@ -9,7 +9,7 @@ class SidebarTreeNode {
   bool isExpanded;
 
   /// 是否选中
-  bool isSelected;
+  bool _isSelected = false;
 
   /// 是否悬停
   bool isHovered;
@@ -21,15 +21,21 @@ class SidebarTreeNode {
     required this.name,
     required this.path,
     this.isExpanded = false,
-    this.isSelected = false,
     this.isHovered = false,
     this.children,
   });
 
   bool get hasChildren => children != null && children!.isNotEmpty;
 
+  bool get isSelected => _isSelected;
 
-  void onTap() {
-    isSelected = true;
+  get onTap => null;
+
+  void select() {
+    _isSelected = true;
+  }
+
+  void unselect() {
+    _isSelected = false;
   }
 }

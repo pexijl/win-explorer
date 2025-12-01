@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:win_explorer/data/services/win32_drive_service.dart';
 import 'package:win_explorer/domain/entities/drive.dart';
+import 'package:win_explorer/features/sidebar/sidebar_tree_view.dart';
 
 class Sidebar extends StatefulWidget {
   final double _left;
@@ -48,12 +49,7 @@ class _SidebarState extends State<Sidebar> {
           color: Colors.grey[300],
           border: Border.all(color: Colors.black, width: 1),
         ),
-        child: ListView.builder(
-          itemCount: drives.length,
-          itemBuilder: (context, index) {
-            return ListTile(title: Text(drives[index].mountPoint));
-          },
-        ),
+        child: SidebarTreeView(),
       ),
     );
   }

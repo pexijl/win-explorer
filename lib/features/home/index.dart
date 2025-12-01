@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:win_explorer/core/constants/global_constants.dart';
-import 'package:win_explorer/features/explorer/presentation/widgets/resize_divider.dart';
+import 'package:win_explorer/shared/widgets/resize_divider.dart';
 import 'package:win_explorer/features/headerBar/index.dart';
 import 'package:win_explorer/features/mainContent/index.dart';
 import 'package:win_explorer/features/sidebar/index.dart';
