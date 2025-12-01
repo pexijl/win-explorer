@@ -121,7 +121,7 @@ class AppFileSystemEntity {
   /// 检查实体是否存在
   Future<bool> get exists async {
     if (_typedEntity is AppFile) {
-      return await (_typedEntity as AppFile).exists;
+      return await (_typedEntity).exists;
     } else {
       return await (_typedEntity as AppDirectory).exists;
     }
@@ -139,7 +139,7 @@ class AppFileSystemEntity {
   /// 检查是否可读
   Future<bool> get isReadable async {
     if (_typedEntity is AppFile) {
-      return await (_typedEntity as AppFile).isReadable;
+      return await (_typedEntity).isReadable;
     } else {
       return await (_typedEntity as AppDirectory).isReadable;
     }
@@ -148,7 +148,7 @@ class AppFileSystemEntity {
   /// 检查是否可写
   Future<bool> get isWritable async {
     if (_typedEntity is AppFile) {
-      return await (_typedEntity as AppFile).isWritable;
+      return await (_typedEntity).isWritable;
     } else {
       return await (_typedEntity as AppDirectory).isWritable;
     }
@@ -157,7 +157,7 @@ class AppFileSystemEntity {
   /// 检查是否隐藏
   Future<bool> get isHidden async {
     if (_typedEntity is AppFile) {
-      return await (_typedEntity as AppFile).isHidden;
+      return await (_typedEntity).isHidden;
     } else {
       return await (_typedEntity as AppDirectory).isHidden;
     }
@@ -168,7 +168,7 @@ class AppFileSystemEntity {
   /// 获取实体大小
   Future<int> get size async {
     if (_typedEntity is AppFile) {
-      return await (_typedEntity as AppFile).size;
+      return await (_typedEntity).size;
     } else {
       return await (_typedEntity as AppDirectory).size;
     }
@@ -177,7 +177,7 @@ class AppFileSystemEntity {
   /// 获取最后修改时间
   Future<DateTime?> get modifiedTime async {
     if (_typedEntity is AppFile) {
-      return await (_typedEntity as AppFile).modifiedTime;
+      return await (_typedEntity).modifiedTime;
     } else {
       return await (_typedEntity as AppDirectory).modifiedTime;
     }
@@ -186,7 +186,7 @@ class AppFileSystemEntity {
   /// 获取创建时间
   Future<DateTime?> get createdTime async {
     if (_typedEntity is AppFile) {
-      return await (_typedEntity as AppFile).createdTime;
+      return await (_typedEntity).createdTime;
     } else {
       return await (_typedEntity as AppDirectory).createdTime;
     }
@@ -195,7 +195,7 @@ class AppFileSystemEntity {
   /// 获取显示用的图标类型
   Future<String> get iconType async {
     if (_typedEntity is AppFile) {
-      return await (_typedEntity as AppFile).iconType;
+      return (_typedEntity).iconType;
     } else {
       return 'folder'; // 目录固定返回文件夹图标
     }
@@ -211,7 +211,7 @@ class AppFileSystemEntity {
 
       final children = <AppFileSystemEntity>[];
       for (final entity in entities) {
-        children.add(AppFileSystemEntity._internal(entity as FileSystemEntity));
+        children.add(AppFileSystemEntity._internal(entity));
       }
 
       return children;

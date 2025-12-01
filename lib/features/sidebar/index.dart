@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:win_explorer/data/services/win32_drive_service.dart';
+import 'package:win_explorer/domain/entities/drive.dart';
 
 class Sidebar extends StatefulWidget {
   final double _left;
@@ -22,7 +23,7 @@ class Sidebar extends StatefulWidget {
 }
 
 class _SidebarState extends State<Sidebar> {
-  List<String> drives = [];
+  List<Drive> drives = [];
 
   @override
   void initState() {
@@ -31,12 +32,7 @@ class _SidebarState extends State<Sidebar> {
   }
 
   void _getDrives() {
-    drives = Win32Service().getDriveList();
-    for (int i = 0; i < drives.length; i++) {
-      if (drives[i].endsWith('\\')) {
-        drives[i] = drives[i].substring(0, drives[i].length - 1);
-      }
-    }
+    drives = Win32DriveService().getSystemDrives();
   }
 
   @override
@@ -55,7 +51,7 @@ class _SidebarState extends State<Sidebar> {
         child: ListView.builder(
           itemCount: drives.length,
           itemBuilder: (context, index) {
-            return ListTile(title: Text(drives[index]));
+            return ListTile(title: Text(drives[index].mountPoint));
           },
         ),
       ),

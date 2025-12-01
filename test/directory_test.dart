@@ -15,8 +15,21 @@ void main() {
     for (AppFileSystemEntity entity in entities) {
       print(entity.name + " " + (await entity.type).toString());
     }
+    List<AppDirectory> subdirectories = await directory1.getSubdirectories();
+    for (AppDirectory directory in subdirectories) {
+      print(directory.name);
+    }
     Drive driveG = drives[1];
   });
 
-  test("2", () async {});
+  test("2", () async {
+    List<Drive> drives = Win32DriveService().getSystemDrives();
+    Drive driveC = drives[0];
+    AppDirectory directory1 = AppDirectory(driveC.mountPoint);
+    List<AppDirectory> subdirectories = await directory1.getSubdirectories();
+    for (AppDirectory directory in subdirectories) {
+      print(directory.name + " " + (await directory.modifiedTime).toString());
+    }
+    Drive driveG = drives[1];
+  });
 }

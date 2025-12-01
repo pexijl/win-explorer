@@ -6,10 +6,10 @@ import 'package:win_explorer/domain/entities/app_file_system_entity.dart';
 /// 增强的目录类（组合模式）
 /// 封装 Directory 并使用 AppFile 处理文件操作
 class AppDirectory {
+  /// 底层 Directory 对象
   final Directory _directory;
-  final AppFile _appFile;
 
-  AppDirectory._internal(this._directory) : _appFile = AppFile(_directory.path);
+  AppDirectory._internal(this._directory);
 
   // ========== 工厂构造函数 ==========
 
@@ -64,13 +64,32 @@ class AppDirectory {
   }
 
   /// 检查目录是否可读
-  Future<bool> get isReadable async => await _appFile.isReadable;
+  Future<bool> get isReadable async {
+    try {
+      await _directory.list().first;
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
 
   /// 检查目录是否可写
-  Future<bool> get isWritable async => await _appFile.isWritable;
+  Future<bool> get isWritable async {
+    try {
+      final testFile = File('${_directory.path}/.write_test');
+      await testFile.create();
+      await testFile.delete();
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
 
   /// 检查目录是否隐藏（以点开头）
-  Future<bool> get isHidden async => await _appFile.isHidden;
+  Future<bool> get isHidden async {
+    final baseName = path_utils.basename(_directory.path);
+    return baseName.startsWith('.');
+  }
 
   // ========== 目录信息 ==========
 
@@ -89,10 +108,24 @@ class AppDirectory {
   }
 
   /// 获取最后修改时间
-  Future<DateTime?> get modifiedTime async => await _appFile.modifiedTime;
+  Future<DateTime?> get modifiedTime async {
+    try {
+      final stat = await _directory.stat();
+      return stat.modified;
+    } catch (e) {
+      return null;
+    }
+  }
 
   /// 获取创建时间
-  Future<DateTime?> get createdTime async => await _appFile.createdTime;
+  Future<DateTime?> get createdTime async {
+    try {
+      final stat = await _directory.stat();
+      return stat.changed;
+    } catch (e) {
+      return null;
+    }
+  }
 
   /// 获取目录统计信息
   Future<DirectoryStats> get stats async {
