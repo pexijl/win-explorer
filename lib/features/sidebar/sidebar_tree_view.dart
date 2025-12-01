@@ -24,9 +24,18 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
     });
   }
 
+  // 新增：处理节点选中事件
+  void _handleNodeSelected(SidebarTreeNode selectedNode) {
+    setState(() {
+      _selectedNode = selectedNode;
+    });
+  }
+
   void _getNodes() async {
     List<Drive> drives = Win32DriveService().getSystemDrives();
-    nodes = drives.map((drive) => SidebarTreeNode.fromDrive(drive: drive)).toList();
+    nodes = drives
+        .map((drive) => SidebarTreeNode.fromDrive(drive: drive))
+        .toList();
     for (SidebarTreeNode node in nodes) {
       await node.getChildren();
     }
@@ -52,6 +61,7 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
                 node: node,
                 isSelected: _selectedNode == node,
                 onTap: () => _handleNodeTap(node),
+                onNodeSelected: _handleNodeSelected,
               ),
             )
             .toList(),

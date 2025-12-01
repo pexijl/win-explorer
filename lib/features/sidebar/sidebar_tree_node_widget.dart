@@ -6,12 +6,14 @@ class SidebarTreeNodeWidget extends StatefulWidget {
   final SidebarTreeNode node;
   final bool isSelected;
   final VoidCallback? onTap;
+  final Function(SidebarTreeNode)? onNodeSelected; // 新增：节点选中回调
 
   const SidebarTreeNodeWidget({
     super.key,
     required this.node,
     required this.isSelected,
     this.onTap,
+    this.onNodeSelected,
   });
 
   @override
@@ -20,6 +22,7 @@ class SidebarTreeNodeWidget extends StatefulWidget {
 
 class _SidebarTreeNodeWidgetState extends State<SidebarTreeNodeWidget> {
   late Future<void> _loadChildrenFuture;
+  SidebarTreeNode? _selectedNode; // 添加选中节点状态
 
   @override
   void initState() {
@@ -37,6 +40,17 @@ class _SidebarTreeNodeWidgetState extends State<SidebarTreeNodeWidget> {
     _loadChildrenFuture = widget.node.getChildren();
   }
 
+  // 添加处理节点选中的方法
+  void _handleNodeSelected(SidebarTreeNode selectedNode) {
+    setState(() {
+      _selectedNode = selectedNode;
+    });
+    // 向上传递选中事件
+    if (widget.onNodeSelected != null) {
+      widget.onNodeSelected!(selectedNode);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     Widget currentNode = MouseRegion(
@@ -51,7 +65,16 @@ class _SidebarTreeNodeWidgetState extends State<SidebarTreeNodeWidget> {
         });
       },
       child: GestureDetector(
-        onTap: widget.onTap ?? widget.node.onTap,
+        onTap: () {
+          // 调用原始的 onTap 回调
+          if (widget.onTap != null) {
+            widget.onTap!();
+          }
+          // 通知父组件当前节点被选中
+          if (widget.onNodeSelected != null) {
+            widget.onNodeSelected!(widget.node);
+          }
+        },
         child: Container(
           height: 30,
           decoration: BoxDecoration(
@@ -99,7 +122,16 @@ class _SidebarTreeNodeWidgetState extends State<SidebarTreeNodeWidget> {
                     alignment: Alignment.centerLeft,
                     textStyle: const TextStyle(color: Colors.black),
                   ),
-                  onPressed: widget.onTap ?? widget.node.onTap,
+                  onPressed: () {
+                    // 调用原始的 onTap 回调
+                    if (widget.onTap != null) {
+                      widget.onTap!();
+                    }
+                    // 通知父组件当前节点被选中
+                    if (widget.onNodeSelected != null) {
+                      widget.onNodeSelected!(widget.node);
+                    }
+                  },
                   child: Text(
                     widget.node.name ?? '无效',
                     overflow: TextOverflow.ellipsis,
@@ -148,10 +180,11 @@ class _SidebarTreeNodeWidgetState extends State<SidebarTreeNodeWidget> {
                   padding: const EdgeInsets.only(left: 20),
                   child: SidebarTreeNodeWidget(
                     node: childNode,
-                    isSelected: false,
+                    isSelected: _selectedNode == childNode, // 使用局部状态
                     onTap: () {
                       // 子节点点击事件处理
                     },
+                    onNodeSelected: _handleNodeSelected, // 使用局部方法
                   ),
                 ),
               );
