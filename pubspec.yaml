@@ -39,6 +39,11 @@ dependencies:
   path: ^1.9.1
   mime: ^2.0.0
   crypto: ^3.0.7
+  fluent_ui: ^4.13.0
+  flutter_acrylic: ^1.1.4
+  window_manager: ^0.5.1
+  provider: ^6.1.5+1
+  system_theme: ^3.1.2
 
 dev_dependencies:
   flutter_test:
