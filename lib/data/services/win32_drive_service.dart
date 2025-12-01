@@ -146,6 +146,8 @@ class Win32DriveService {
         // 如果卷标为空，使用默认名称
         if (volumeName.isEmpty) {
           volumeName = _getDefaultDriveName(driveType, driveLetter);
+        }else{
+          volumeName = '$volumeName ($driveLetter:)';
         }
       } else {
         volumeName = _getDefaultDriveName(driveType, driveLetter);
