@@ -16,7 +16,10 @@ class SidebarTreeNode {
   bool isHovered;
 
   /// 子节点
-  final List<SidebarTreeNode>? children;
+  List<SidebarTreeNode>? children;
+
+  /// 是否有子节点
+  bool hasChildren = false;
 
   // onTap 回调函数
   final VoidCallback? onTap;
@@ -28,7 +31,9 @@ class SidebarTreeNode {
     this.children,
     this.onTap,
     String? name,
-  }) : name = name ?? appDirectory.name;
+  }) : name = name ?? appDirectory.name {
+    getHasChildren();
+  }
 
   SidebarTreeNode.fromDrive({
     required Drive drive,
@@ -45,5 +50,24 @@ class SidebarTreeNode {
          name: drive.name,
        );
 
-  bool get hasChildren => children != null && children!.isNotEmpty;
+  /// 获取子节点
+  Future<void> getChildren() async {
+    List<AppDirectory> subdirs = await appDirectory.getSubdirectories();
+    children = subdirs
+        .map((subdir) => SidebarTreeNode(appDirectory: subdir))
+        .toList();
+  }
+
+  Future<void> getHasChildren() async {
+    if (children != null && children!.isNotEmpty) {
+      hasChildren = true;
+      return;
+    }
+    hasChildren = !(await appDirectory.isEmpty);
+  }
+
+  @override
+  String toString() {
+    return 'SidebarTreeNode{appDirectory: $appDirectory, name: $name, isExpanded: $isExpanded, isHovered: $isHovered, children: $children, onTap: $onTap}';
+  }
 }

@@ -3,13 +3,8 @@ import 'package:win32/win32.dart';
 import 'package:win_explorer/features/sidebar/sidebar_tree_node.dart';
 
 class SidebarTreeNodeWidget extends StatefulWidget {
-  /// 用于显示的节点
   final SidebarTreeNode node;
-
-  /// 当前节点是否被选中
   final bool isSelected;
-
-  /// 点击事件
   final VoidCallback? onTap;
 
   const SidebarTreeNodeWidget({
@@ -24,9 +19,26 @@ class SidebarTreeNodeWidget extends StatefulWidget {
 }
 
 class _SidebarTreeNodeWidgetState extends State<SidebarTreeNodeWidget> {
+  late Future<void> _loadChildrenFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    // 在初始化阶段预加载是否有子节点的信息
+    if (!widget.node.hasChildren) {
+      widget.node.getHasChildren().then((_) {
+        if (mounted) {
+          setState(() {});
+        }
+      });
+    }
+
+    // 初始化子节点加载 Future
+    _loadChildrenFuture = widget.node.getChildren();
+  }
+
   @override
   Widget build(BuildContext context) {
-    // 构建当前节点的UI
     Widget currentNode = MouseRegion(
       onEnter: (_) {
         setState(() {
@@ -46,18 +58,16 @@ class _SidebarTreeNodeWidgetState extends State<SidebarTreeNodeWidget> {
             color: widget.isSelected
                 ? Colors.blueAccent.withValues(alpha: 0.5)
                 : widget.node.isHovered
-                ? Colors.grey.withValues(alpha: 0.3)
-                : Colors.transparent,
+                    ? Colors.grey.withValues(alpha: 0.3)
+                    : Colors.transparent,
             border: Border.all(color: Colors.redAccent),
           ),
           child: Row(
             children: [
-              // 显示展开/折叠图标（如果有子节点）
               if (widget.node.hasChildren)
                 SizedBox(
                   width: 30,
                   child: IconButton(
-                    // hoverColor: Colors.transparent,
                     highlightColor: Colors.transparent,
                     mouseCursor: SystemMouseCursors.basic,
                     padding: EdgeInsets.zero,
@@ -74,7 +84,7 @@ class _SidebarTreeNodeWidgetState extends State<SidebarTreeNodeWidget> {
                   ),
                 )
               else
-                SizedBox(width: 30), // 占位符，保持对齐
+                SizedBox(width: 30),
               TextButton(
                 style: TextButton.styleFrom(
                   padding: EdgeInsets.zero,
@@ -82,7 +92,7 @@ class _SidebarTreeNodeWidgetState extends State<SidebarTreeNodeWidget> {
                   minimumSize: Size.zero,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   alignment: Alignment.centerLeft,
-                  textStyle: TextStyle(color: Colors.black),
+                  textStyle: const TextStyle(color: Colors.black),
                 ),
                 onPressed: widget.onTap ?? widget.node.onTap,
                 child: Text(widget.node.name ?? '无效'),
@@ -93,29 +103,58 @@ class _SidebarTreeNodeWidgetState extends State<SidebarTreeNodeWidget> {
       ),
     );
 
-    // 如果有子节点且已展开，则递归显示子节点
     if (widget.node.hasChildren && widget.node.isExpanded) {
-      List<Widget> childrenWidgets = [];
+      return FutureBuilder(
+        future: _loadChildrenFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                currentNode,
+                const Padding(
+                  padding: EdgeInsets.only(left: 20),
+                  child: Text('加载中...'),
+                ),
+              ],
+            );
+          } else if (snapshot.hasError) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                currentNode,
+                const Padding(
+                  padding: EdgeInsets.only(left: 20),
+                  child: Text('加载失败'),
+                ),
+              ],
+            );
+          } else {
+            List<Widget> childrenWidgets = [];
+            for (var childNode in widget.node.children!) {
+              childrenWidgets.add(
+                Padding(
+                  padding: const EdgeInsets.only(left: 20),
+                  child: SidebarTreeNodeWidget(
+                    node: childNode,
+                    isSelected: false,
+                    onTap: () {
+                      // 子节点点击事件处理
+                    },
+                  ),
+                ),
+              );
+            }
 
-      for (var childNode in widget.node.children!) {
-        childrenWidgets.add(
-          Padding(
-            padding: const EdgeInsets.only(left: 20), // 缩进表示层级关系
-            child: SidebarTreeNodeWidget(
-              node: childNode,
-              isSelected: false, // 这里应传递正确的选中状态
-              onTap: () {
-                // 处理子节点点击事件
-              },
-            ),
-          ),
-        );
-      }
-
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [currentNode, ...childrenWidgets],
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [currentNode, ...childrenWidgets],
+            );
+          }
+        },
       );
     }
 
