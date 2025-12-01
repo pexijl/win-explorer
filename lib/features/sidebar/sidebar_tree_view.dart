@@ -27,7 +27,6 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
   void _getNodes() async {
     List<Drive> drives = Win32DriveService().getSystemDrives();
     nodes = drives.map((drive) => SidebarTreeNode.fromDrive(drive: drive)).toList();
-    print(nodes);
   }
 
   @override
