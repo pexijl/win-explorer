@@ -67,6 +67,15 @@ class _SidebarTreeNodeWidgetState extends State<SidebarTreeNodeWidget> {
                 },
               ),
               TextButton(
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  overlayColor: Colors.transparent,
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  alignment: Alignment.centerLeft,
+                  textStyle: TextStyle(color: Colors.black),
+                ),
+
                 onPressed: () {
                   setState(() {
                     widget.onTap?.call();
