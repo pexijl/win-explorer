@@ -48,7 +48,7 @@ class _SidebarState extends State<Sidebar> {
           color: Colors.grey[300],
           border: Border.all(color: Colors.black, width: 1),
         ),
-        child: SidebarTreeView(),
+        child: SidebarTreeView(drives: drives),
       ),
     );
   }

@@ -1,97 +1,98 @@
-import 'dart:ui';
+import 'package:flutter/foundation.dart';
 import 'package:win_explorer/domain/entities/app_directory.dart';
 import 'package:win_explorer/domain/entities/drive.dart';
 
-class SidebarTreeNode {
+class SidebarTreeNode extends ChangeNotifier {
   /// 节点的数据实体
-  AppDirectory appDirectory;
+  final AppDirectory appDirectory;
 
   /// 节点名称
-  String? name;
+  final String name;
 
   /// 是否展开
-  bool isExpanded;
-
-  /// 是否悬停
-  bool isHovered;
+  bool _isExpanded;
+  bool get isExpanded => _isExpanded;
 
   /// 子节点
-  List<SidebarTreeNode>? children;
+  List<SidebarTreeNode>? _children;
+  List<SidebarTreeNode>? get children => _children;
 
   /// 是否有子节点
   bool _hasChildren = false;
-  
-  // 提供 getter 方法确保每次获取最新状态
   bool get hasChildren => _hasChildren;
 
-  // onTap 回调函数
-  final VoidCallback? onTap;
+  /// 是否正在加载
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
 
   SidebarTreeNode({
     required this.appDirectory,
-    this.isExpanded = false,
-    this.isHovered = false,
-    this.children,
-    this.onTap,
+    bool isExpanded = false,
+    List<SidebarTreeNode>? children,
     String? name,
-  }) : name = name ?? appDirectory.name {
-    _updateHasChildren();
+  }) : _isExpanded = isExpanded,
+       _children = children,
+       name = name ?? appDirectory.name {
+    _checkForChildren();
   }
 
   SidebarTreeNode.fromDrive({
     required Drive drive,
     bool isExpanded = false,
-    bool isHovered = false,
     List<SidebarTreeNode>? children,
-    VoidCallback? onTap,
   }) : this(
          appDirectory: AppDirectory(drive.mountPoint),
          isExpanded: isExpanded,
-         isHovered: isHovered,
          children: children,
-         onTap: onTap,
          name: drive.name,
        );
 
-  /// 动态检查是否有子目录
-  Future<void> _updateHasChildren() async {
+  /// 检查是否有子目录
+  Future<void> _checkForChildren() async {
     try {
-      // 检查是否存在子目录（而不是所有文件）
       final subDirs = await appDirectory.getSubdirectories(recursive: false);
       _hasChildren = subDirs.isNotEmpty;
+      notifyListeners();
     } catch (e) {
       _hasChildren = false;
+      notifyListeners();
     }
   }
 
-  /// 获取子节点
-  Future<void> getChildren() async {
+  /// 加载子节点
+  Future<void> loadChildren() async {
+    if (_children != null) return;
+
+    _isLoading = true;
+    notifyListeners();
+
     try {
       List<AppDirectory> subdirs = await appDirectory.getSubdirectories(recursive: false);
-      children = subdirs
+      _children = subdirs
           .map((subdir) => SidebarTreeNode(appDirectory: subdir))
           .toList();
-      // 更新 hasChildren 状态
-      _hasChildren = children != null && children!.isNotEmpty;
+      _hasChildren = _children!.isNotEmpty;
     } catch (e) {
-      children = [];
+      _children = [];
       _hasChildren = false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
-  /// 切换展开状态时重新检查子节点
+  /// 切换展开状态
   Future<void> toggleExpanded() async {
-    isExpanded = !isExpanded;
-    if (isExpanded && (children == null || children!.isEmpty)) {
-      await getChildren();
-    } else if (isExpanded) {
-      // 即使已有 children，也重新检查以确保准确性
-      await _updateHasChildren();
+    _isExpanded = !_isExpanded;
+    notifyListeners();
+    
+    if (_isExpanded) {
+      await loadChildren();
     }
   }
 
   @override
   String toString() {
-    return 'SidebarTreeNode{appDirectory: $appDirectory, name: $name, isExpanded: $isExpanded, isHovered: $isHovered, children: $children}';
+    return 'SidebarTreeNode{name: $name, isExpanded: $_isExpanded, childrenCount: ${_children?.length}}';
   }
 }

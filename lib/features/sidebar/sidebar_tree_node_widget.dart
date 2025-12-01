@@ -1,19 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:win32/win32.dart';
 import 'package:win_explorer/features/sidebar/sidebar_tree_node.dart';
 
 class SidebarTreeNodeWidget extends StatefulWidget {
   final SidebarTreeNode node;
-  final bool isSelected;
-  final VoidCallback? onTap;
-  final Function(SidebarTreeNode)? onNodeSelected; // 新增：节点选中回调
+  final SidebarTreeNode? selectedNode;
+  final Function(SidebarTreeNode) onNodeSelected;
 
   const SidebarTreeNodeWidget({
     super.key,
     required this.node,
-    required this.isSelected,
-    this.onTap,
-    this.onNodeSelected,
+    required this.selectedNode,
+    required this.onNodeSelected,
   });
 
   @override
@@ -21,121 +18,71 @@ class SidebarTreeNodeWidget extends StatefulWidget {
 }
 
 class _SidebarTreeNodeWidgetState extends State<SidebarTreeNodeWidget> {
-  late Future<void> _loadChildrenFuture;
-  SidebarTreeNode? _selectedNode; // 添加选中节点状态
-
-  @override
-  void initState() {
-    super.initState();
-    // 在初始化阶段预加载是否有子节点的信息
-    if (!widget.node.hasChildren) {
-      widget.node.getChildren().then((_) {
-        if (mounted) {
-          setState(() {});
-        }
-      });
-    }
-
-    // 初始化子节点加载 Future
-    _loadChildrenFuture = widget.node.getChildren();
-  }
-
-  // 添加处理节点选中的方法
-  void _handleNodeSelected(SidebarTreeNode selectedNode) {
-    setState(() {
-      _selectedNode = selectedNode;
-    });
-    // 向上传递选中事件
-    if (widget.onNodeSelected != null) {
-      widget.onNodeSelected!(selectedNode);
-    }
-  }
+  bool _isHovered = false;
 
   @override
   Widget build(BuildContext context) {
-    Widget currentNode = MouseRegion(
-      onEnter: (_) {
-        setState(() {
-          widget.node.isHovered = true;
-        });
+    return ListenableBuilder(
+      listenable: widget.node,
+      builder: (context, child) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildNodeTile(),
+            if (widget.node.isExpanded) _buildChildren(),
+          ],
+        );
       },
-      onExit: (_) {
-        setState(() {
-          widget.node.isHovered = false;
-        });
-      },
+    );
+  }
+
+  Widget _buildNodeTile() {
+    final isSelected = widget.node == widget.selectedNode;
+    
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
       child: GestureDetector(
-        onTap: () {
-          // 调用原始的 onTap 回调
-          if (widget.onTap != null) {
-            widget.onTap!();
-          }
-          // 通知父组件当前节点被选中
-          if (widget.onNodeSelected != null) {
-            widget.onNodeSelected!(widget.node);
-          }
-        },
+        onTap: () => widget.onNodeSelected(widget.node),
         child: Container(
           height: 30,
           decoration: BoxDecoration(
-            color: widget.isSelected
-                ? Colors.blueAccent.withValues(alpha: 0.5)
-                : widget.node.isHovered
-                ? Colors.grey.withValues(alpha: 0.3)
-                : Colors.transparent,
-            border: Border.all(color: Colors.redAccent),
+            color: isSelected
+                ? Colors.blue.withOpacity(0.2)
+                : _isHovered
+                    ? Colors.grey.withOpacity(0.1)
+                    : Colors.transparent,
           ),
           child: Row(
             children: [
-              if (widget.node.hasChildren)
-                SizedBox(
-                  width: 30,
-                  child: IconButton(
-                    highlightColor: Colors.transparent,
-                    mouseCursor: SystemMouseCursors.basic,
-                    padding: EdgeInsets.zero,
-                    icon: Icon(
-                      widget.node.isExpanded
-                          ? Icons.keyboard_arrow_down
-                          : Icons.chevron_right,
-                    ),
-                    onPressed: () async {
-                      // 先切换状态
-                      await widget.node.toggleExpanded();
-
-                      // 然后更新UI
-                      if (mounted) {
-                        setState(() {});
-                      }
-                    },
-                  ),
-                )
-              else
-                SizedBox(width: 30),
+              SizedBox(
+                width: 24,
+                height: 24,
+                child: widget.node.hasChildren
+                    ? IconButton(
+                        padding: EdgeInsets.zero,
+                        iconSize: 16,
+                        splashRadius: 12,
+                        icon: Icon(
+                          widget.node.isExpanded
+                              ? Icons.keyboard_arrow_down
+                              : Icons.chevron_right,
+                          color: Colors.grey[700],
+                        ),
+                        onPressed: () => widget.node.toggleExpanded(),
+                      )
+                    : null,
+              ),
+              const SizedBox(width: 4),
+              const Icon(Icons.folder, size: 16, color: Colors.amber),
+              const SizedBox(width: 8),
               Expanded(
-                child: TextButton(
-                  style: TextButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    overlayColor: Colors.transparent,
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    alignment: Alignment.centerLeft,
-                    textStyle: const TextStyle(color: Colors.black),
-                  ),
-                  onPressed: () {
-                    // 调用原始的 onTap 回调
-                    if (widget.onTap != null) {
-                      widget.onTap!();
-                    }
-                    // 通知父组件当前节点被选中
-                    if (widget.onNodeSelected != null) {
-                      widget.onNodeSelected!(widget.node);
-                    }
-                  },
-                  child: Text(
-                    widget.node.name ?? '无效',
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                child: Text(
+                  widget.node.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 13),
                 ),
               ),
             ],
@@ -143,63 +90,35 @@ class _SidebarTreeNodeWidgetState extends State<SidebarTreeNodeWidget> {
         ),
       ),
     );
+  }
 
-    if (widget.node.hasChildren && widget.node.isExpanded) {
-      return FutureBuilder(
-        future: _loadChildrenFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                currentNode,
-                const Padding(
-                  padding: EdgeInsets.only(left: 20),
-                  child: Text('加载中...'),
-                ),
-              ],
-            );
-          } else if (snapshot.hasError) {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                currentNode,
-                const Padding(
-                  padding: EdgeInsets.only(left: 20),
-                  child: Text('加载失败'),
-                ),
-              ],
-            );
-          } else {
-            List<Widget> childrenWidgets = [];
-            for (var childNode in widget.node.children!) {
-              childrenWidgets.add(
-                Padding(
-                  padding: const EdgeInsets.only(left: 20),
-                  child: SidebarTreeNodeWidget(
-                    node: childNode,
-                    isSelected: _selectedNode == childNode, // 使用局部状态
-                    onTap: () {
-                      // 子节点点击事件处理
-                    },
-                    onNodeSelected: _handleNodeSelected, // 使用局部方法
-                  ),
-                ),
-              );
-            }
-
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [currentNode, ...childrenWidgets],
-            );
-          }
-        },
+  Widget _buildChildren() {
+    if (widget.node.isLoading) {
+      return const Padding(
+        padding: EdgeInsets.only(left: 28.0, top: 4, bottom: 4),
+        child: SizedBox(
+          width: 12, 
+          height: 12, 
+          child: CircularProgressIndicator(strokeWidth: 2)
+        ),
       );
     }
 
-    return currentNode;
+    final children = widget.node.children;
+    if (children == null || children.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(left: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: children.map((child) => SidebarTreeNodeWidget(
+          node: child,
+          selectedNode: widget.selectedNode,
+          onNodeSelected: widget.onNodeSelected,
+        )).toList(),
+      ),
+    );
   }
 }
