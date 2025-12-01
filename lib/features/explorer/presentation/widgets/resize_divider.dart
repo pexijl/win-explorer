@@ -24,8 +24,8 @@ class _ResizeDividerState extends State<ResizeDivider> {
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      left: widget.left - 10,
-      width: 20,
+      left: widget.left,
+      width: 10,
       top: 0,
       bottom: 0,
       child: GestureDetector(
