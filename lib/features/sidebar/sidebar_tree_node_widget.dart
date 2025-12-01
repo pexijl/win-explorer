@@ -89,17 +89,22 @@ class _SidebarTreeNodeWidgetState extends State<SidebarTreeNodeWidget> {
                 )
               else
                 SizedBox(width: 30),
-              TextButton(
-                style: TextButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  overlayColor: Colors.transparent,
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  alignment: Alignment.centerLeft,
-                  textStyle: const TextStyle(color: Colors.black),
+              Expanded(
+                child: TextButton(
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    overlayColor: Colors.transparent,
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    alignment: Alignment.centerLeft,
+                    textStyle: const TextStyle(color: Colors.black),
+                  ),
+                  onPressed: widget.onTap ?? widget.node.onTap,
+                  child: Text(
+                    widget.node.name ?? '无效',
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-                onPressed: widget.onTap ?? widget.node.onTap,
-                child: Text(widget.node.name ?? '无效'),
               ),
             ],
           ),
