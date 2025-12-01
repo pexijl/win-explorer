@@ -10,9 +10,6 @@ class SidebarTreeNode {
   /// 是否展开
   bool isExpanded;
 
-  /// 是否选中
-  bool _isSelected = false;
-
   /// 是否悬停
   bool isHovered;
 
@@ -33,13 +30,4 @@ class SidebarTreeNode {
 
   bool get hasChildren => children != null && children!.isNotEmpty;
 
-  bool get isSelected => _isSelected;
-
-  void select() {
-    _isSelected = true;
-  }
-
-  void unselect() {
-    _isSelected = false;
-  }
 }

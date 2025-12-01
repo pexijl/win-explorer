@@ -13,27 +13,11 @@ class SidebarTreeView extends StatefulWidget {
 }
 
 class _SidebarTreeViewState extends State<SidebarTreeView> {
-  List<Widget> treeItems = [];
+  List<SidebarTreeNode> nodes = [];
   SidebarTreeNode? _selectedNode;
-
-  List<Widget> _getTreeItems() {
-    treeItems.clear();
-    for (int i = 0; i < 100; i++) {
-      final node = SidebarTreeNode(name: '目录项 $i', path: '路径 $i');
-      treeItems.add(
-        SidebarTreeNodeWidget(node: node, onTap: () => _handleNodeTap(node)),
-      );
-    }
-    return treeItems;
-  }
 
   void _handleNodeTap(SidebarTreeNode tappedNode) {
     setState(() {
-      // 取消之前选中项
-      _selectedNode?.unselect();
-
-      // 设置新选中项
-      tappedNode.select();
       _selectedNode = tappedNode;
     });
   }
@@ -41,7 +25,10 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
   @override
   void initState() {
     super.initState();
-    _getTreeItems();
+    // 初始化节点数据
+    for (int i = 0; i < 100; i++) {
+      nodes.add(SidebarTreeNode(name: '目录项 $i', path: '路径 $i'));
+    }
   }
 
   @override
@@ -49,7 +36,18 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       scrollDirection: Axis.vertical,
-      child: Column(mainAxisSize: MainAxisSize.min, children: treeItems),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: nodes
+            .map(
+              (node) => SidebarTreeNodeWidget(
+                node: node,
+                isSelected: _selectedNode == node, // 传递选中状态
+                onTap: () => _handleNodeTap(node),
+              ),
+            )
+            .toList(),
+      ),
     );
   }
 }

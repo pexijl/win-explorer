@@ -3,9 +3,20 @@ import 'package:win32/win32.dart';
 import 'package:win_explorer/features/sidebar/sidebar_tree_node.dart';
 
 class SidebarTreeNodeWidget extends StatefulWidget {
+  /// 用于显示的节点
   final SidebarTreeNode node;
-  final VoidCallback? onTap; // 新增参数
-  const SidebarTreeNodeWidget({super.key, required this.node, this.onTap});
+
+  /// 当前节点是否被选中
+  final bool isSelected;
+
+  /// 点击事件
+  final VoidCallback? onTap;
+  const SidebarTreeNodeWidget({
+    super.key,
+    required this.node,
+    required this.isSelected,
+    this.onTap,
+  });
 
   @override
   State<SidebarTreeNodeWidget> createState() => _SidebarTreeNodeWidgetState();
@@ -30,7 +41,7 @@ class _SidebarTreeNodeWidgetState extends State<SidebarTreeNodeWidget> {
         child: Container(
           height: 30,
           decoration: BoxDecoration(
-            color: widget.node.isSelected
+            color: widget.isSelected
                 ? Colors.blueAccent.withValues(alpha: 0.5)
                 : widget.node.isHovered
                 ? Colors.grey.withValues(alpha: 0.3)
