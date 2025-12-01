@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:win_explorer/data/services/win32_service.dart';
+import 'package:win_explorer/data/services/win32_drive_service.dart';
 
 class FileItemModel {
   final String path;

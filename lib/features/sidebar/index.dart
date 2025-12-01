@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:win_explorer/data/services/win32_service.dart';
+import 'package:win_explorer/data/services/win32_drive_service.dart';
 
 class Sidebar extends StatefulWidget {
   final double _left;

@@ -1,21 +1,22 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
-import 'package:win_explorer/data/services/win32_service.dart';
-import 'package:win_explorer/domain/entities/directory.dart';
-import 'package:win_explorer/domain/entities/file_system_entity%20.dart';
-
-
-
-
-
-
+import 'package:win_explorer/data/services/win32_drive_service.dart';
+import 'package:win_explorer/domain/entities/app_directory.dart';
+import 'package:win_explorer/domain/entities/app_file_system_entity.dart';
+import 'package:win_explorer/domain/entities/drive.dart';
 
 void main() {
-
   test("1", () async {
-    List<String> drives = Win32Service().getDriveList();
-    Directory dir = Directory(drives[0]);
-    List<FileSystemEntity> results = await dir.listEntities();
-    print(results);
+    List<Drive> drives = Win32DriveService().getSystemDrives();
+    Drive driveC = drives[0];
+    AppDirectory directory1 = AppDirectory(driveC.mountPoint);
+    List<AppFileSystemEntity> entities = await directory1.listAppEntities();
+    print(entities);
+    Drive driveG = drives[1];
   });
 
+  test("2", () async {
+
+  });
 }

@@ -1,4 +1,3 @@
-
 /// 表示一个物理或逻辑驱动器（如 C:\, D:\）
 class Drive {
   /// 驱动器的唯一标识符（例如："C:" 或 "PhysicalDrive0"）
@@ -85,7 +84,7 @@ class Drive {
 
   /// 获取驱动器的盘符（例如，对于 mountPoint "C:\"，返回 "C"）
   String get driveLetter => mountPoint.substring(0, mountPoint.indexOf(':'));
-  
+
   /// 获取一个简短的描述信息
   String get description {
     final sizeInGB = (totalSize / (1024 * 1024 * 1024)).toStringAsFixed(2);
@@ -96,8 +95,8 @@ class Drive {
   @override
   String toString() {
     return 'Drive{id: $id, mountPoint: $mountPoint, name: $name, '
-           'totalSize: $totalSize, freeSpace: $freeSpace, type: $type, '
-           'fileSystem: $fileSystem, isWritable: $isWritable, isReady: $isReady}';
+        'totalSize: $totalSize, freeSpace: $freeSpace, type: $type, '
+        'fileSystem: $fileSystem, isWritable: $isWritable, isReady: $isReady}';
   }
 
   @override
@@ -111,10 +110,10 @@ class Drive {
 
 /// 驱动器类型枚举
 enum DriveType {
-  unknown,    // 未知类型
-  fixed,      // 本地固定磁盘（如系统盘 C:）
-  removable,  // 可移动磁盘（如 U 盘、移动硬盘）
-  network,    // 网络映射驱动器
-  cdrom,      // CD/DVD/BD 光驱
-  ram,        // RAM 磁盘
+  unknown, // 未知类型
+  fixed, // 本地固定磁盘（如系统盘 C:）
+  removable, // 可移动磁盘（如 U 盘、移动硬盘）
+  network, // 网络映射驱动器
+  cdrom, // CD/DVD/BD 光驱
+  ram, // RAM 磁盘
 }
