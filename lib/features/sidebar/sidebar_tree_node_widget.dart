@@ -54,25 +54,27 @@ class _SidebarTreeNodeWidgetState extends State<SidebarTreeNodeWidget> {
             children: [
               // 显示展开/折叠图标（如果有子节点）
               if (widget.node.hasChildren)
-                IconButton(
-                  hoverColor: Colors.transparent,
-                  highlightColor: Colors.transparent,
-                  mouseCursor: SystemMouseCursors.basic,
-                  padding: EdgeInsets.zero,
-                  icon: Icon(
-                    widget.node.isExpanded
-                        ? Icons.keyboard_arrow_down
-                        : Icons.chevron_right,
+                Container(
+                  width: 30,
+                  child: IconButton(
+                    // hoverColor: Colors.transparent,
+                    highlightColor: Colors.transparent,
+                    mouseCursor: SystemMouseCursors.basic,
+                    padding: EdgeInsets.zero,
+                    icon: Icon(
+                      widget.node.isExpanded
+                          ? Icons.keyboard_arrow_down
+                          : Icons.chevron_right,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        widget.node.isExpanded = !widget.node.isExpanded;
+                      });
+                    },
                   ),
-                  onPressed: () {
-                    setState(() {
-                      widget.node.isExpanded = !widget.node.isExpanded;
-                    });
-                  },
                 )
               else
-                SizedBox(width: 40), // 占位符，保持对齐
-
+                SizedBox(width: 30), // 占位符，保持对齐
               TextButton(
                 style: TextButton.styleFrom(
                   padding: EdgeInsets.zero,

@@ -15,6 +15,7 @@ class SidebarTreeView extends StatefulWidget {
 class _SidebarTreeViewState extends State<SidebarTreeView> {
   List<SidebarTreeNode> nodes = [];
   List<SidebarTreeNode> subNodes = [];
+  List<SidebarTreeNode> ssubNodes = [];
   SidebarTreeNode? _selectedNode;
 
   void _handleNodeTap(SidebarTreeNode tappedNode) {
@@ -26,13 +27,11 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
   @override
   void initState() {
     super.initState();
+
     for (int i = 0; i < 5; i++) {
-      subNodes.add(SidebarTreeNode(name: '子目录项 $i', path: '子路径 $i'));
-    }
-    for (int i = 0; i < 5; i++) {
-      nodes.add(
-        SidebarTreeNode(name: '目录项 $i', path: '路径 $i', children: subNodes),
-      );
+      ssubNodes.add(SidebarTreeNode(name: '子子目录项 $i', path: '子子路径 $i'));
+      subNodes.add(SidebarTreeNode(name: '子目录项 $i', path: '子路径 $i', children: ssubNodes));
+      nodes.add(SidebarTreeNode(name: '目录项 $i', path: '路径 $i', children: subNodes));
     }
   }
 
