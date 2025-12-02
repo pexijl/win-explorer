@@ -85,7 +85,7 @@ class _HomePageState extends State<HomePage> {
                 onForward: _goForward,
                 onUp: _goUp,
                 onRefresh: () {
-                  setState(() {}); // Trigger rebuild to refresh
+                  setState(() {}); // 触发重建以刷新
                 },
                 canGoBack: _historyIndex > 0,
                 canGoForward: _historyIndex < _history.length - 1,
