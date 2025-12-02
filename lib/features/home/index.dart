@@ -27,8 +27,8 @@ class _HomePageState extends State<HomePage> {
     if (_currentDirectory?.path == directory.path) return;
 
     setState(() {
-      // If we are in the middle of history and navigate to a new place,
-      // we truncate the forward history.
+      // 如果我们处于历史记录的中间并导航到一个新位置，  
+      // 我们会截断向前的历史记录。
       if (_historyIndex < _history.length - 1) {
         _history.removeRange(_historyIndex + 1, _history.length);
       }
