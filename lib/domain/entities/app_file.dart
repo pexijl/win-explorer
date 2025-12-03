@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:path/path.dart' as path_utils;
 import 'package:mime/mime.dart' as mime;
 import 'package:crypto/crypto.dart' as crypto;
-import 'package:win_explorer/domain/entities/app_directory.dart';
 
 /// 增强的文件类（组合模式）
 /// 封装 File 并提供文件管理器所需的高级功能
@@ -51,9 +50,6 @@ class AppFile {
 
   /// 获取父目录路径
   String get parentPath => path_utils.dirname(path);
-
-  /// 获取父目录的 AppDirectory 对象
-  AppDirectory get parent => AppDirectory(parentPath);
 
   // ========== 状态检查 ==========
 
