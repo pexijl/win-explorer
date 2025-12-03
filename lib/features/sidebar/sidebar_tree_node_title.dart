@@ -12,14 +12,22 @@ class SidebarTreeNodeTile extends StatefulWidget {
   /// 点击节点
   final Function(SidebarTreeNode) onNodeSelected;
 
-  /// 节点改变回调
+  /// 节点变化回调
   final VoidCallback? onNodeChanged;
+
+  /// 是否展开
+  final bool isExpanded;
+
+  /// 展开状态改变
+  final ValueChanged<bool>? onExpansionChanged;
 
   const SidebarTreeNodeTile({
     super.key,
     required this.node,
     required this.selectedNode,
     required this.onNodeSelected,
+    this.isExpanded = false,
+    this.onExpansionChanged,
     this.onNodeChanged,
   });
 
@@ -30,9 +38,6 @@ class SidebarTreeNodeTile extends StatefulWidget {
 class _SidebarTreeNodeTileState extends State<SidebarTreeNodeTile> {
   /// 鼠标悬停
   bool _isHovered = false;
-
-  /// 是否展开
-  bool _isExpanded = false;
 
   @override
   void initState() {
@@ -72,18 +77,30 @@ class _SidebarTreeNodeTileState extends State<SidebarTreeNodeTile> {
                         iconSize: 16,
                         splashRadius: 12,
                         icon: Icon(
-                          _isExpanded
+                          widget.isExpanded
                               ? Icons.keyboard_arrow_down
                               : Icons.chevron_right,
                           color: Colors.grey[700],
                         ),
-                        onPressed: () {
-                          setState(() {
-                            _isExpanded = !_isExpanded;
-                            if(_isExpanded){
-                              widget.node.loadChildren();
+                        onPressed: () async {
+                          // 切换展开状态（我们将新值发送到父组件）
+                          final newExpanded = !widget.isExpanded;
+                          print('子传父 newExpanded: $newExpanded (old=${widget.isExpanded})');
+                          widget.onExpansionChanged?.call(newExpanded);
+                          // 如果我们要切换到展开模式，请先加载子项。
+                          if (newExpanded) {
+                            try {
+                              await widget.node.loadChildren();
+                            } catch (e) {
+                              // ignore or log error
                             }
-                          });
+                          }
+
+                          // 通知父组件: 节点发生了变化（例如 children 已加载）
+                          widget.onNodeChanged?.call();
+                          print(
+                            'node.id: ${widget.node.id} newExpanded: $newExpanded widget.isExpanded: ${widget.isExpanded} node.children: ${widget.node.children != null}',
+                          );
                         },
                       )
                     : null,
