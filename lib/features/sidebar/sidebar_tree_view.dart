@@ -8,7 +8,8 @@ import 'package:win_explorer/features/sidebar/sidebar_tree_node_widget.dart';
 
 class SidebarTreeView extends StatefulWidget {
   final List<Drive> drives;
-  final Function(SidebarTreeNode)? onNodeSelected;
+  /// Callback returns the selected AppDirectory for the chosen node
+  final Function(AppDirectory)? onNodeSelected;
 
   const SidebarTreeView({super.key, required this.drives, this.onNodeSelected});
 
@@ -17,9 +18,8 @@ class SidebarTreeView extends StatefulWidget {
 }
 
 class _SidebarTreeViewState extends State<SidebarTreeView> {
-  TreeSliverNode<AppDirectory>? _selectedNode;
-  final TreeSliverController controller = TreeSliverController();
-  final List<TreeSliverNode<AppDirectory>> _tree = [];
+  SidebarTreeNode? _selectedNode;
+  final List<SidebarTreeNode> _tree = [];
   bool _isLoading = true;
 
   @override
@@ -40,19 +40,9 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
     setState(() {
       _isLoading = true;
     });
-
     _tree.clear();
     for (Drive drive in widget.drives) {
-      AppDirectory root = AppDirectory(drive.mountPoint);
-      List<TreeSliverNode<AppDirectory>> subNodes =
-          (await root.getSubdirectories(recursive: false)).map((subDir) {
-            return TreeSliverNode<AppDirectory>(subDir);
-          }).toList();
-      TreeSliverNode<AppDirectory> node = TreeSliverNode<AppDirectory>(
-        root,
-        children: subNodes,
-      );
-      _tree.add(node);
+      _tree.add(SidebarTreeNode.fromDrive(drive: drive));
     }
 
     if (mounted) {
@@ -62,61 +52,34 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
     }
   }
 
-  Widget _treeNodeBuilder(
-    BuildContext context,
-    TreeSliverNode<Object?> node,
-    AnimationStyle animationStyle,
-  ) {
-    return TreeSliver.wrapChildToToggleNode(
-      node: node,
-      child: Container(
-        decoration: BoxDecoration(
-          color: const Color.fromARGB(255, 89, 180, 255),
-          border: Border.all(color: Colors.black),
-        ),
-        height: 30,
-        child: Row(
-          children: [
-            if (node.children.isNotEmpty) // Show expand icon when child nodes are not empty
-              SizedBox(
-                width: 24,
-                child: Icon(
-                  node.isExpanded ? Icons.expand_more : Icons.chevron_right,
-                  size: 16,
-                ),
-              ),
-            Text((node.content as AppDirectory).name),
-          ],
-        ),
-      ),
+  // We're using SidebarTreeNode & SidebarTreeNodeWidget to manage
+  // expansion/collapse and selection. The previous TreeSliver
+  // implementation intercepted taps and caused toggle not to fire.
+
+  Widget _buildList() {
+    return ListView(
+      padding: EdgeInsets.zero,
+      children: _tree.map((node) => SidebarTreeNodeWidget(
+        node: node,
+        selectedNode: _selectedNode,
+        onNodeSelected: (n) {
+          setState(() {
+            _selectedNode = n;
+          });
+          widget.onNodeSelected?.call(n.appDirectory);
+        },
+      )).toList(),
     );
   }
 
-  List<Widget> _buildSlivers() {
-    return [
-      TreeSliver<AppDirectory>(
-        tree: _tree,
-        controller: controller,
-        treeNodeBuilder: _treeNodeBuilder,
-        onNodeToggle: (node) {
-
-          setState(() {
-            _selectedNode = node as TreeSliverNode<AppDirectory>?;
-          });
-        },
-        treeRowExtentBuilder: (node, layoutDimensions) {
-          return 30;
-        },
-      ),
-    ];
-  }
+  // SidebarTreeNode handles loading children by itself, so we don't
+  // need custom load logic here anymore.
 
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
-    return CustomScrollView(slivers: _buildSlivers());
+    return _buildList();
   }
-
 }

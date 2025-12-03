@@ -53,7 +53,7 @@ class _SidebarState extends State<Sidebar> {
         ),
         child: SidebarTreeView(
           drives: drives,
-          onNodeSelected: (node) => widget.onDirectorySelected(node.appDirectory),
+          onNodeSelected: (appDir) => widget.onDirectorySelected(appDir),
         ),
       ),
     );

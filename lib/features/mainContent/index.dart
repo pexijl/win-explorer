@@ -36,7 +36,7 @@ class _MainContentState extends State<MainContent> {
       _loadContents();
     }
   }
-  
+
   @override
   void initState() {
     super.initState();
@@ -85,9 +85,9 @@ class _MainContentState extends State<MainContent> {
           color: Colors.white,
           border: Border.all(color: Colors.black, width: 1),
         ),
-        child: widget.directory == null 
-          ? const Center(child: Text('请选择一个文件夹'))
-          : _isLoading 
+        child: widget.directory == null
+            ? const Center(child: Text('请选择一个文件夹'))
+            : _isLoading
             ? const Center(child: CircularProgressIndicator())
             : _buildGridView(),
       ),
@@ -112,7 +112,7 @@ class _MainContentState extends State<MainContent> {
         final entity = _entities[index];
         final isDir = entity is Directory;
         final name = entity.path.split(Platform.pathSeparator).last;
-        
+
         return InkWell(
           onTap: () {
             // Handle selection
