@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:win_explorer/domain/entities/app_directory.dart';
 import 'package:win_explorer/domain/entities/drive.dart';
 import 'package:win_explorer/features/sidebar/sidebar_tree_node.dart';
-import 'package:win_explorer/features/sidebar/sidebar_tree_node_widget.dart';
+import 'package:win_explorer/features/sidebar/sidebar_tree_node_title.dart';
 
 class SidebarTreeView extends StatefulWidget {
   final List<Drive> drives;
