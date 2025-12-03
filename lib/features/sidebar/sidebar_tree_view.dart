@@ -1,7 +1,6 @@
 import 'dart:core';
 
 import 'package:flutter/material.dart';
-import 'package:two_dimensional_scrollables/two_dimensional_scrollables.dart';
 import 'package:win_explorer/domain/entities/app_directory.dart';
 import 'package:win_explorer/domain/entities/drive.dart';
 import 'package:win_explorer/features/sidebar/sidebar_tree_node.dart';
