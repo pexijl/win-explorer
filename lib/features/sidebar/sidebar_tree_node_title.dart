@@ -5,10 +5,13 @@ import 'package:win_explorer/features/sidebar/sidebar_tree_node.dart';
 class SidebarTreeNodeTile extends StatefulWidget {
   /// 节点
   final SidebarTreeNode node;
+
   /// 选中的节点
   final SidebarTreeNode? selectedNode;
+
   /// 点击节点
   final Function(SidebarTreeNode) onNodeSelected;
+
   /// 节点改变回调
   final VoidCallback? onNodeChanged;
 
@@ -28,44 +31,22 @@ class _SidebarTreeNodeTileState extends State<SidebarTreeNodeTile> {
   /// 鼠标悬停
   bool _isHovered = false;
 
+  /// 是否展开
+  bool _isExpanded = false;
+
   @override
   void initState() {
     super.initState();
-    widget.node.addListener(_handleNodeChange);
-  }
-
-  @override
-  void didUpdateWidget(SidebarTreeNodeTile oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.node != oldWidget.node) {
-      oldWidget.node.removeListener(_handleNodeChange);
-      widget.node.addListener(_handleNodeChange);
-    }
-  }
-
-  @override
-  void dispose() {
-    widget.node.removeListener(_handleNodeChange);
-    super.dispose();
-  }
-
-  void _handleNodeChange() {
-    widget.onNodeChanged?.call();
   }
 
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: widget.node,
-      builder: (context, child) {
-        return _buildNodeTile();
-      },
-    );
+    return _buildNodeTile();
   }
 
   Widget _buildNodeTile() {
     final isSelected = widget.node == widget.selectedNode;
-    
+
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
@@ -77,8 +58,8 @@ class _SidebarTreeNodeTileState extends State<SidebarTreeNodeTile> {
             color: isSelected
                 ? Colors.blue.withOpacity(0.2)
                 : _isHovered
-                    ? Colors.grey.withOpacity(0.1)
-                    : Colors.transparent,
+                ? Colors.grey.withOpacity(0.1)
+                : Colors.transparent,
           ),
           child: Row(
             children: [
@@ -91,13 +72,18 @@ class _SidebarTreeNodeTileState extends State<SidebarTreeNodeTile> {
                         iconSize: 16,
                         splashRadius: 12,
                         icon: Icon(
-                          widget.node.isExpanded
+                          _isExpanded
                               ? Icons.keyboard_arrow_down
                               : Icons.chevron_right,
                           color: Colors.grey[700],
                         ),
                         onPressed: () {
-                          widget.node.toggleExpanded();
+                          setState(() {
+                            _isExpanded = !_isExpanded;
+                            if(_isExpanded){
+                              widget.node.loadChildren();
+                            }
+                          });
                         },
                       )
                     : null,
@@ -107,7 +93,7 @@ class _SidebarTreeNodeTileState extends State<SidebarTreeNodeTile> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  widget.node.name,
+                  widget.node.label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(fontSize: 13),
