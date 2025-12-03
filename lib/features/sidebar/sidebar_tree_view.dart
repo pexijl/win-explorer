@@ -19,8 +19,7 @@ class SidebarTreeView extends StatefulWidget {
 
 class _SidebarTreeViewState extends State<SidebarTreeView> {
   SidebarTreeNode? _selectedNode;
-  final List<SidebarTreeNode> _tree = [];
-  List<TreeSliverNode<SidebarTreeNode>> _treeNodes = [];
+  List<TreeSliverNode<SidebarTreeNode>> _tree = [];
   final TreeSliverController _treeController = TreeSliverController();
   bool _isLoading = true;
 
@@ -42,11 +41,15 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
     setState(() {
       _isLoading = true;
     });
-    _tree.clear();
+    
+    final List<SidebarTreeNode> roots = [];
     for (Drive drive in widget.drives) {
-      _tree.add(SidebarTreeNode.fromDrive(drive: drive));
+      roots.add(SidebarTreeNode.fromDrive(drive: drive));
     }
-    _updateTreeNodes();
+    
+    setState(() {
+      _tree = _mapNodes(roots);
+    });
 
     if (mounted) {
       setState(() {
@@ -57,7 +60,8 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
 
   void _updateTreeNodes() {
     setState(() {
-      _treeNodes = _mapNodes(_tree);
+      final roots = _tree.map((e) => e.content).toList();
+      _tree = _mapNodes(roots);
     });
   }
 
@@ -94,7 +98,7 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
     return CustomScrollView(
       slivers: [
         TreeSliver<SidebarTreeNode>(
-          tree: _treeNodes,
+          tree: _tree,
           controller: _treeController,
           treeNodeBuilder: (context, node, animation) {
             return SidebarTreeNodeTile(
