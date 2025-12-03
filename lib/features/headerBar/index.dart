@@ -115,7 +115,7 @@ class _HeaderBarState extends State<HeaderBar> {
                       focusNode: _pathFocusNode,
                       decoration: const InputDecoration(
                         border: InputBorder.none,
-                        contentPadding: EdgeInsets.only(bottom: 12),
+                        contentPadding: EdgeInsets.only(bottom: 0),
                         isDense: true,
                       ),
                       style: const TextStyle(fontSize: 13),
@@ -151,7 +151,7 @@ class _HeaderBarState extends State<HeaderBar> {
                   hintText: '搜索',
                   prefixIcon: Icon(Icons.search, size: 18, color: Colors.grey),
                   border: InputBorder.none,
-                  contentPadding: EdgeInsets.only(top: 8), // Center vertically
+                  contentPadding: EdgeInsets.only(top: 10), // Center vertically
                   isDense: true,
                 ),
                 style: TextStyle(fontSize: 13),
