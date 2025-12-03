@@ -1,6 +1,7 @@
 import 'dart:core';
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:win_explorer/domain/entities/app_directory.dart';
 import 'package:win_explorer/domain/entities/drive.dart';
 import 'package:win_explorer/features/sidebar/sidebar_tree_node.dart';
@@ -57,9 +58,11 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
 
   /// 更新树形结构节点
   void _updateTreeNodes() {
+    print('update tree nodes');
     setState(() {
       _tree = _mapNodes(_tree.map((e) => e.content).toList());
     });
+    print('update tree nodes done $_tree');
   }
 
   /// 将 `SidebarTreeNode` 列表映射为 `TreeSliverNode<SidebarTreeNode>` 列表
@@ -92,20 +95,19 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
           controller: _treeController,
           treeNodeBuilder: (context, node, animation) {
             final content = node.content as SidebarTreeNode;
-            final isExpanded = _treeController.isExpanded(node);
-            return SidebarTreeNodeTile(
-              key: ValueKey(content.id),
-              node: content,
-              isExpanded: isExpanded,
-              selectedNode: _selectedNode,
-              onNodeSelected: (n) {
-                setState(() {
-                  _selectedNode = n;
-                });
-                widget.onNodeSelected?.call(n.appDirectory);
-              },
-              onNodeChanged: _updateTreeNodes,
-              onExpansionChanged: (isExpanded) {},
+            return ChangeNotifierProvider<SidebarTreeNode>.value(
+              value: content,
+              child: SidebarTreeNodeTile(
+                node: content,
+                selectedNode: _selectedNode,
+                onNodeSelected: (n) {
+                  setState(() {
+                    _selectedNode = n;
+                  });
+                  widget.onNodeSelected?.call(n.appDirectory);
+                },
+                onNodeChanged: _updateTreeNodes,
+              ),
             );
           },
         ),

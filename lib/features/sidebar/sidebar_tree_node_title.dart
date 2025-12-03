@@ -16,19 +16,11 @@ class SidebarTreeNodeTile extends StatefulWidget {
   /// 节点变化回调
   final VoidCallback? onNodeChanged;
 
-  /// 是否展开
-  final bool isExpanded;
-
-  /// 展开状态改变
-  final ValueChanged<bool>? onExpansionChanged;
-
   const SidebarTreeNodeTile({
     super.key,
     required this.node,
     required this.selectedNode,
     required this.onNodeSelected,
-    this.isExpanded = false,
-    this.onExpansionChanged,
     this.onNodeChanged,
   });
 
@@ -47,84 +39,87 @@ class _SidebarTreeNodeTileState extends State<SidebarTreeNodeTile> {
 
   @override
   Widget build(BuildContext context) {
-    return _buildNodeTile();
+    final listenerNode = context.watch<SidebarTreeNode>();
+    return _buildNodeTile(listenerNode);
   }
 
   /// 构建节点, 通过 [ChangeNotifierProvider] 包装, 以便监听节点变化
-  Widget _buildNodeTile() {
+  Widget _buildNodeTile(SidebarTreeNode listenerNode) {
     final isSelected = widget.node == widget.selectedNode;
-    return ChangeNotifierProvider(
-      create: (_) => widget.node,
-      child: MouseRegion(
-        onEnter: (_) => setState(() => _isHovered = true),
-        onExit: (_) => setState(() => _isHovered = false),
-        child: GestureDetector(
-          onTap: () => widget.onNodeSelected(widget.node),
-          child: Container(
-            height: 30,
-            decoration: BoxDecoration(
-              color: isSelected
-                  ? Colors.blue.withValues(alpha: 0.2)
-                  : _isHovered
-                  ? Colors.grey.withValues(alpha: 0.1)
-                  : Colors.transparent,
-            ),
-            child: Row(
-              children: [
-                SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: widget.node.hasChildren
-                      ? IconButton(
-                          padding: EdgeInsets.zero,
-                          iconSize: 16,
-                          splashRadius: 12,
-                          icon: Icon(
-                            widget.isExpanded
-                                ? Icons.keyboard_arrow_down
-                                : Icons.chevron_right,
-                            color: Colors.grey[700],
-                          ),
-                          onPressed: () async {
-                            // 切换展开状态（我们将新值发送到父组件）
-                            final newExpanded = !widget.isExpanded;
-                            print(
-                              '子传父 newExpanded: $newExpanded (old=${widget.isExpanded})',
-                            );
-                            widget.onExpansionChanged?.call(newExpanded);
-                            // 如果我们要切换到展开模式，请先加载子项。
-                            if (newExpanded) {
-                              try {
-                                await widget.node.loadChildren();
-                              } catch (e) {
-                                // ignore or log error
-                              }
-                            }
-
-                            // 通知父组件: 节点发生了变化（例如 children 已加载）
-                            widget.onNodeChanged?.call();
-                            print(
-                              'node.id: ${widget.node.id} newExpanded: $newExpanded widget.isExpanded: ${widget.isExpanded} node.children: ${widget.node.children != null}',
-                            );
-                          },
-                        )
-                      : null,
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTap: () => widget.onNodeSelected(widget.node),
+        child: Container(
+          height: 30,
+          decoration: BoxDecoration(
+            color: isSelected
+                ? Colors.blue.withValues(alpha: 0.2)
+                : _isHovered
+                ? Colors.grey.withValues(alpha: 0.1)
+                : Colors.transparent,
+          ),
+          child: Row(
+            children: [
+              SizedBox(
+                width: 24,
+                height: 24,
+                child: widget.node.hasChildren
+                    ? IconButton(
+                        padding: EdgeInsets.zero,
+                        iconSize: 16,
+                        splashRadius: 12,
+                        icon: Icon(
+                          listenerNode.isExpanded
+                              ? Icons.keyboard_arrow_down
+                              : Icons.chevron_right,
+                          color: Colors.grey[700],
+                        ),
+                        onPressed: () {
+                          listenerNode.toggleExpanded();
+                          widget.onNodeChanged?.call();
+                        },
+                      )
+                    : null,
+              ),
+              const SizedBox(width: 4),
+              const Icon(Icons.folder, size: 16, color: Colors.amber),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  widget.node.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 13),
                 ),
-                const SizedBox(width: 4),
-                const Icon(Icons.folder, size: 16, color: Colors.amber),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    widget.node.label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 13),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildChildren() {
+    return Padding(
+      padding: const EdgeInsets.only(left: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: widget.node.children != null
+            ? widget.node.children!
+                  .map(
+                    (child) => ChangeNotifierProvider<SidebarTreeNode>.value(
+                      value: child,
+                      child: SidebarTreeNodeTile(
+                        node: child,
+                        selectedNode: widget.selectedNode,
+                        onNodeSelected: widget.onNodeSelected,
+                      ),
+                    ),
+                  )
+                  .toList()
+            : [],
       ),
     );
   }
