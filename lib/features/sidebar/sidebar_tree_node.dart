@@ -18,14 +18,19 @@ class SidebarTreeNode extends ChangeNotifier {
 
   /// 是否展开
   bool isExpanded;
+  /// 是否是占位符 (例如 Loading...)，跳过实际的 I/O 检查和加载
+  final bool isPlaceholder;
 
   SidebarTreeNode({
     required this.label,
     required this.appDirectory,
     List<SidebarTreeNode>? children,
     this.isExpanded = false,
+    this.isPlaceholder = false,
   }) {
-    _checkForChildren();
+    if (!isPlaceholder) {
+      _checkForChildren();
+    }
   }
 
   /// 检查是否有子目录
@@ -42,6 +47,7 @@ class SidebarTreeNode extends ChangeNotifier {
 
   /// 加载子节点
   Future<void> loadChildren() async {
+    if (isPlaceholder) return;
     if (children != null) return;
     try {
       List<AppDirectory> subdirs = await appDirectory.getSubdirectories(
@@ -65,6 +71,7 @@ class SidebarTreeNode extends ChangeNotifier {
   /// 切换展开状态
   Future<void> toggleExpanded() async {
     print('toggleExpanded');
+    if (isPlaceholder) return;
     isExpanded = !isExpanded;
     notifyListeners();
     if (isExpanded) {

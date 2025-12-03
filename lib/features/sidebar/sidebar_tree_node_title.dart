@@ -13,8 +13,8 @@ class SidebarTreeNodeTile extends StatefulWidget {
   /// 点击节点
   final Function(SidebarTreeNode) onNodeSelected;
 
-  /// 节点变化回调
-  final VoidCallback? onNodeChanged;
+  /// 节点变化回调: 传入发生变化的 `SidebarTreeNode`
+  final ValueChanged<SidebarTreeNode>? onNodeChanged;
 
   const SidebarTreeNodeTile({
     super.key,
@@ -46,11 +46,12 @@ class _SidebarTreeNodeTileState extends State<SidebarTreeNodeTile> {
   /// 构建节点, 通过 [ChangeNotifierProvider] 包装, 以便监听节点变化
   Widget _buildNodeTile(SidebarTreeNode listenerNode) {
     final isSelected = widget.node == widget.selectedNode;
+    final isPlaceholder = widget.node.isPlaceholder;
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
       child: GestureDetector(
-        onTap: () => widget.onNodeSelected(widget.node),
+        onTap: isPlaceholder ? null : () => widget.onNodeSelected(widget.node),
         child: Container(
           height: 30,
           decoration: BoxDecoration(
@@ -76,12 +77,14 @@ class _SidebarTreeNodeTileState extends State<SidebarTreeNodeTile> {
                               : Icons.chevron_right,
                           color: Colors.grey[700],
                         ),
-                        onPressed: () async {
-                          final future = listenerNode.toggleExpanded();
+                        onPressed: isPlaceholder
+                            ? null
+                            : () async {
+                                final future = listenerNode.toggleExpanded();
 
-                          await future;
-                          widget.onNodeChanged?.call();
-                        },
+                                await future;
+                                widget.onNodeChanged?.call(widget.node);
+                              },
                       )
                     : null,
               ),
