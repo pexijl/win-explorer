@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:win_explorer/domain/entities/app_directory.dart';
-import 'package:win_explorer/domain/entities/drive.dart';
 
-class SidebarTreeNode {
+/// 树形结构节点, 继承自 ChangeNotifier 以支持状态管理
+class SidebarTreeNode extends ChangeNotifier {
   /// 节点唯一标识
   final String id = UniqueKey().toString();
 
@@ -32,8 +32,10 @@ class SidebarTreeNode {
     try {
       final subDirs = await appDirectory.getSubdirectories(recursive: false);
       _hasChildren = subDirs.isNotEmpty;
+      notifyListeners();
     } catch (e) {
       _hasChildren = false;
+      notifyListeners();
     }
   }
 
@@ -51,9 +53,11 @@ class SidebarTreeNode {
           )
           .toList();
       _hasChildren = children!.isNotEmpty;
+      notifyListeners();
     } catch (e) {
       children = [];
       _hasChildren = false;
+      notifyListeners();
     }
   }
 

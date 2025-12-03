@@ -30,8 +30,6 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
 
   /// 树形结构控制器
   final TreeSliverController _treeController = TreeSliverController();
-  // 记录请求的扩展（来自子节点）并在树更新后处理
-  final Map<String, bool> _requestedExpansions = {};
 
   @override
   void initState() {
@@ -62,43 +60,6 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
     setState(() {
       _tree = _mapNodes(_tree.map((e) => e.content).toList());
     });
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_requestedExpansions.isEmpty) return;
-      debugPrint(
-        'Processing requestedExpansion changes: $_requestedExpansions',
-      );
-      _requestedExpansions.forEach((id, expanded) {
-        final target = _findTreeNodeByContentId(id, _tree);
-        if (target != null) {
-          debugPrint('Found target for $id expanded=$expanded');
-          if (expanded) {
-            _treeController.expandNode(target);
-          } else {
-            _treeController.collapseNode(target);
-          }
-        } else {
-          debugPrint('Target not found for $id');
-        }
-      });
-      _requestedExpansions.clear();
-      // rebuild to pick up controller animation changes
-      setState(() {});
-    });
-  }
-
-  TreeSliverNode<SidebarTreeNode>? _findTreeNodeByContentId(
-    String id,
-    List<TreeSliverNode<SidebarTreeNode>> nodes,
-  ) {
-    for (final n in nodes) {
-      final content = n.content;
-      if (content.id == id) return n;
-      if (n.children.isNotEmpty) {
-        final found = _findTreeNodeByContentId(id, n.children);
-        if (found != null) return found;
-      }
-    }
-    return null;
   }
 
   /// 将 `SidebarTreeNode` 列表映射为 `TreeSliverNode<SidebarTreeNode>` 列表
@@ -144,13 +105,7 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
                 widget.onNodeSelected?.call(n.appDirectory);
               },
               onNodeChanged: _updateTreeNodes,
-              onExpansionChanged: (isExpanded) {
-                // `isExpanded` 是我们刚从图块接收到的新展开状态。
-                // 推迟应用展开/折叠，直到我们更新树数据
-                // （这可以避免动画期间控制器与树的不匹配）。
-                print('父接收 new isExpanded: $isExpanded');
-                _requestedExpansions[content.id] = isExpanded;
-              },
+              onExpansionChanged: (isExpanded) {},
             );
           },
         ),
