@@ -26,10 +26,10 @@ class SidebarTreeNode extends ChangeNotifier {
   bool get isLoading => _isLoading;
 
   SidebarTreeNode({
+    String? name,
     required this.appDirectory,
     bool isExpanded = false,
     List<SidebarTreeNode>? children,
-    String? name,
   }) : _isExpanded = isExpanded,
        _children = children,
        name = name ?? appDirectory.name {
