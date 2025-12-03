@@ -314,7 +314,7 @@ class AppFileSystemEntity {
   /// 删除实体
   Future<bool> delete({bool recursive = false}) async {
     if (_typedEntity is AppFile) {
-      return await (_typedEntity as AppFile).delete();
+      return await (_typedEntity).delete();
     } else {
       return await (_typedEntity as AppDirectory).deleteRecursively();
     }
@@ -325,7 +325,7 @@ class AppFileSystemEntity {
     FileSystemEntity newEntity;
 
     if (_typedEntity is AppFile) {
-      final file = _typedEntity as AppFile;
+      final file = _typedEntity;
       newEntity = (await file.rename(newPath)) as FileSystemEntity;
     } else {
       final directory = _typedEntity as AppDirectory;
@@ -338,7 +338,7 @@ class AppFileSystemEntity {
   /// 复制实体
   Future<AppFileSystemEntity> copyTo(String newPath) async {
     if (_typedEntity is AppFile) {
-      final file = _typedEntity as AppFile;
+      final file = _typedEntity;
       final newFile = await file.copy(newPath);
       return AppFileSystemEntity.fromFile(newFile as File);
     } else {
@@ -363,7 +363,7 @@ class AppFileSystemEntity {
   /// 获取人类可读的大小
   Future<String> getFormattedSize() async {
     if (_typedEntity is AppFile) {
-      return await (_typedEntity as AppFile).getFormattedSize();
+      return await (_typedEntity).getFormattedSize();
     } else {
       return await (_typedEntity as AppDirectory).getFormattedSize();
     }
@@ -372,7 +372,7 @@ class AppFileSystemEntity {
   /// 获取格式化的修改时间
   Future<String> getFormattedModifiedTime() async {
     if (_typedEntity is AppFile) {
-      return await (_typedEntity as AppFile).getFormattedModifiedTime();
+      return await (_typedEntity).getFormattedModifiedTime();
     } else {
       return await (_typedEntity as AppDirectory).getFormattedModifiedTime();
     }
