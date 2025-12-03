@@ -27,7 +27,7 @@ class Sidebar extends StatefulWidget {
 }
 
 class _SidebarState extends State<Sidebar> {
-  List<Drive> drives = [];
+  final List<Drive> drives = [];
 
   @override
   void initState() {
@@ -36,7 +36,7 @@ class _SidebarState extends State<Sidebar> {
   }
 
   void _getDrives() {
-    drives = Win32DriveService().getSystemDrives();
+    drives.addAll(Win32DriveService().getSystemDrives());
   }
 
   @override
