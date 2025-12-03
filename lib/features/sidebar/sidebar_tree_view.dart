@@ -58,11 +58,9 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
 
   /// 更新树形结构节点
   void _updateTreeNodes() {
-    print('update tree nodes');
     setState(() {
       _tree = _mapNodes(_tree.map((e) => e.content).toList());
     });
-    print('update tree nodes done $_tree');
   }
 
   /// 将 `SidebarTreeNode` 列表映射为 `TreeSliverNode<SidebarTreeNode>` 列表
@@ -82,7 +80,11 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
         ];
       }
 
-      return TreeSliverNode(node, children: childrenNodes);
+      return TreeSliverNode(
+        node,
+        children: childrenNodes,
+        expanded: node.isExpanded,
+      );
     }).toList();
   }
 

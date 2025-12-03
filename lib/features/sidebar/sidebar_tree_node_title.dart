@@ -76,8 +76,10 @@ class _SidebarTreeNodeTileState extends State<SidebarTreeNodeTile> {
                               : Icons.chevron_right,
                           color: Colors.grey[700],
                         ),
-                        onPressed: () {
-                          listenerNode.toggleExpanded();
+                        onPressed: () async {
+                          final future = listenerNode.toggleExpanded();
+
+                          await future;
                           widget.onNodeChanged?.call();
                         },
                       )
@@ -101,26 +103,5 @@ class _SidebarTreeNodeTileState extends State<SidebarTreeNodeTile> {
     );
   }
 
-  Widget _buildChildren() {
-    return Padding(
-      padding: const EdgeInsets.only(left: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: widget.node.children != null
-            ? widget.node.children!
-                  .map(
-                    (child) => ChangeNotifierProvider<SidebarTreeNode>.value(
-                      value: child,
-                      child: SidebarTreeNodeTile(
-                        node: child,
-                        selectedNode: widget.selectedNode,
-                        onNodeSelected: widget.onNodeSelected,
-                      ),
-                    ),
-                  )
-                  .toList()
-            : [],
-      ),
-    );
-  }
+
 }
