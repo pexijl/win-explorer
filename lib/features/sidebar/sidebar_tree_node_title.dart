@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:win_explorer/features/sidebar/sidebar_tree_node.dart';
 
+/// 用于[SidebarTreeNode]的一个图块。
 class SidebarTreeNodeTile extends StatefulWidget {
+  /// 节点
   final SidebarTreeNode node;
+  /// 选中的节点
   final SidebarTreeNode? selectedNode;
+  /// 点击节点
   final Function(SidebarTreeNode) onNodeSelected;
+  /// 节点改变回调
   final VoidCallback? onNodeChanged;
 
   const SidebarTreeNodeTile({
@@ -20,6 +25,7 @@ class SidebarTreeNodeTile extends StatefulWidget {
 }
 
 class _SidebarTreeNodeTileState extends State<SidebarTreeNodeTile> {
+  /// 鼠标悬停
   bool _isHovered = false;
 
   @override
