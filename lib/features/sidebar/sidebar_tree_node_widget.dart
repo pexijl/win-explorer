@@ -1,38 +1,58 @@
 import 'package:flutter/material.dart';
 import 'package:win_explorer/features/sidebar/sidebar_tree_node.dart';
 
-class SidebarTreeNodeWidget extends StatefulWidget {
+class SidebarTreeNodeTile extends StatefulWidget {
   final SidebarTreeNode node;
   final SidebarTreeNode? selectedNode;
   final Function(SidebarTreeNode) onNodeSelected;
+  final VoidCallback? onNodeChanged;
 
-  const SidebarTreeNodeWidget({
+  const SidebarTreeNodeTile({
     super.key,
     required this.node,
     required this.selectedNode,
     required this.onNodeSelected,
+    this.onNodeChanged,
   });
 
   @override
-  State<SidebarTreeNodeWidget> createState() => _SidebarTreeNodeWidgetState();
+  State<SidebarTreeNodeTile> createState() => _SidebarTreeNodeTileState();
 }
 
-class _SidebarTreeNodeWidgetState extends State<SidebarTreeNodeWidget> {
+class _SidebarTreeNodeTileState extends State<SidebarTreeNodeTile> {
   bool _isHovered = false;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.node.addListener(_handleNodeChange);
+  }
+
+  @override
+  void didUpdateWidget(SidebarTreeNodeTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.node != oldWidget.node) {
+      oldWidget.node.removeListener(_handleNodeChange);
+      widget.node.addListener(_handleNodeChange);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.node.removeListener(_handleNodeChange);
+    super.dispose();
+  }
+
+  void _handleNodeChange() {
+    widget.onNodeChanged?.call();
+  }
 
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
       listenable: widget.node,
       builder: (context, child) {
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildNodeTile(),
-            if (widget.node.isExpanded) _buildChildren(),
-          ],
-        );
+        return _buildNodeTile();
       },
     );
   }
@@ -70,7 +90,9 @@ class _SidebarTreeNodeWidgetState extends State<SidebarTreeNodeWidget> {
                               : Icons.chevron_right,
                           color: Colors.grey[700],
                         ),
-                        onPressed: () => widget.node.toggleExpanded(),
+                        onPressed: () {
+                          widget.node.toggleExpanded();
+                        },
                       )
                     : null,
               ),
@@ -88,36 +110,6 @@ class _SidebarTreeNodeWidgetState extends State<SidebarTreeNodeWidget> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildChildren() {
-    if (widget.node.isLoading) {
-      return const Padding(
-        padding: EdgeInsets.only(left: 28.0, top: 4, bottom: 4),
-        child: SizedBox(
-          width: 12, 
-          height: 12, 
-          child: CircularProgressIndicator(strokeWidth: 2)
-        ),
-      );
-    }
-
-    final children = widget.node.children;
-    if (children == null || children.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return Padding(
-      padding: const EdgeInsets.only(left: 16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: children.map((child) => SidebarTreeNodeWidget(
-          node: child,
-          selectedNode: widget.selectedNode,
-          onNodeSelected: widget.onNodeSelected,
-        )).toList(),
       ),
     );
   }

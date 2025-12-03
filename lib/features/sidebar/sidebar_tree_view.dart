@@ -1,6 +1,7 @@
 import 'dart:core';
 
 import 'package:flutter/material.dart';
+import 'package:two_dimensional_scrollables/two_dimensional_scrollables.dart';
 import 'package:win_explorer/domain/entities/app_directory.dart';
 import 'package:win_explorer/domain/entities/drive.dart';
 import 'package:win_explorer/features/sidebar/sidebar_tree_node.dart';
@@ -20,6 +21,8 @@ class SidebarTreeView extends StatefulWidget {
 class _SidebarTreeViewState extends State<SidebarTreeView> {
   SidebarTreeNode? _selectedNode;
   final List<SidebarTreeNode> _tree = [];
+  List<TreeSliverNode<SidebarTreeNode>> _treeNodes = [];
+  final TreeSliverController _treeController = TreeSliverController();
   bool _isLoading = true;
 
   @override
@@ -44,6 +47,7 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
     for (Drive drive in widget.drives) {
       _tree.add(SidebarTreeNode.fromDrive(drive: drive));
     }
+    _updateTreeNodes();
 
     if (mounted) {
       setState(() {
@@ -52,34 +56,62 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
     }
   }
 
-  // We're using SidebarTreeNode & SidebarTreeNodeWidget to manage
-  // expansion/collapse and selection. The previous TreeSliver
-  // implementation intercepted taps and caused toggle not to fire.
-
-  Widget _buildList() {
-    return ListView(
-      padding: EdgeInsets.zero,
-      children: _tree.map((node) => SidebarTreeNodeWidget(
-        node: node,
-        selectedNode: _selectedNode,
-        onNodeSelected: (n) {
-          setState(() {
-            _selectedNode = n;
-          });
-          widget.onNodeSelected?.call(n.appDirectory);
-        },
-      )).toList(),
-    );
+  void _updateTreeNodes() {
+    setState(() {
+      _treeNodes = _mapNodes(_tree);
+    });
   }
 
-  // SidebarTreeNode handles loading children by itself, so we don't
-  // need custom load logic here anymore.
+  List<TreeSliverNode<SidebarTreeNode>> _mapNodes(List<SidebarTreeNode> nodes) {
+    return nodes.map((node) {
+      List<TreeSliverNode<SidebarTreeNode>> childrenNodes = [];
+      if (node.children != null) {
+        childrenNodes = _mapNodes(node.children!);
+      } else if (node.hasChildren) {
+        childrenNodes = [
+          TreeSliverNode(
+            SidebarTreeNode(
+              appDirectory: AppDirectory('Loading...'),
+              name: 'Loading...',
+            ),
+          )
+        ];
+      }
+
+      return TreeSliverNode(
+        node,
+        expanded: node.isExpanded,
+        children: childrenNodes,
+      );
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
-    return _buildList();
+    
+    return CustomScrollView(
+      slivers: [
+        TreeSliver<SidebarTreeNode>(
+          tree: _treeNodes,
+          controller: _treeController,
+          treeNodeBuilder: (context, node, animation) {
+            return SidebarTreeNodeTile(
+              node: node.content as SidebarTreeNode,
+              selectedNode: _selectedNode,
+              onNodeSelected: (n) {
+                setState(() {
+                  _selectedNode = n;
+                });
+                widget.onNodeSelected?.call(n.appDirectory);
+              },
+              onNodeChanged: _updateTreeNodes,
+            );
+          },
+        ),
+      ],
+    );
   }
 }
