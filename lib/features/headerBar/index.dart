@@ -34,7 +34,9 @@ class _HeaderBarState extends State<HeaderBar> {
   @override
   void initState() {
     super.initState();
-    _pathController = TextEditingController(text: widget.currentDirectory?.path ?? '');
+    _pathController = TextEditingController(
+      text: widget.currentDirectory?.path ?? '',
+    );
   }
 
   @override
@@ -69,7 +71,7 @@ class _HeaderBarState extends State<HeaderBar> {
         border: Border(bottom: BorderSide(color: Colors.grey[300]!)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             offset: const Offset(0, 1),
             blurRadius: 2,
           ),
@@ -79,11 +81,19 @@ class _HeaderBarState extends State<HeaderBar> {
         children: [
           // Navigation Buttons
           _buildNavButton(Icons.arrow_back, widget.onBack, widget.canGoBack),
-          _buildNavButton(Icons.arrow_forward, widget.onForward, widget.canGoForward),
-          _buildNavButton(Icons.arrow_upward, widget.onUp, widget.currentDirectory != null),
-          
+          _buildNavButton(
+            Icons.arrow_forward,
+            widget.onForward,
+            widget.canGoForward,
+          ),
+          _buildNavButton(
+            Icons.arrow_upward,
+            widget.onUp,
+            widget.currentDirectory != null,
+          ),
+
           const SizedBox(width: 8),
-          
+
           // Refresh Button
           IconButton(
             icon: const Icon(Icons.refresh, size: 20),
@@ -107,7 +117,11 @@ class _HeaderBarState extends State<HeaderBar> {
                 children: [
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 8),
-                    child: Icon(Icons.folder_open, size: 18, color: Colors.grey),
+                    child: Icon(
+                      Icons.folder_open,
+                      size: 18,
+                      color: Colors.grey,
+                    ),
                   ),
                   Expanded(
                     child: TextField(
@@ -128,7 +142,10 @@ class _HeaderBarState extends State<HeaderBar> {
                       onPressed: () => _handlePathSubmit(_pathController.text),
                       splashRadius: 16,
                       padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                      constraints: const BoxConstraints(
+                        minWidth: 32,
+                        minHeight: 32,
+                      ),
                     ),
                 ],
               ),
