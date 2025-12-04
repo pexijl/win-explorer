@@ -38,6 +38,12 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
   /// 防止重复加载同一节点
   final Map<String, Future<void>> _pendingLoads = {};
 
+  /// 记录最近切换（展开/收起）的节点时间戳，用于在短时间内忽略对其子节点的选中点击
+  final Map<String, DateTime> _recentlyToggled = {};
+
+  /// 在切换节点后，忽略后续选择事件的时间窗口
+  final Duration _ignoreSelectionDuration = const Duration(milliseconds: 350);
+
   @override
   void initState() {
     super.initState();
@@ -145,17 +151,45 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
       });
       unawaited(_loadChildren(node));
     }
+    // 记录切换时间（父节点路径），之后在选择子节点时做忽略判断
+    _recentlyToggled[node.content.appDirectory.path] = DateTime.now();
+    Future.delayed(_ignoreSelectionDuration).then((_) {
+      final recorded = _recentlyToggled[node.content.appDirectory.path];
+      if (recorded != null && DateTime.now().difference(recorded) >= _ignoreSelectionDuration) {
+        _recentlyToggled.remove(node.content.appDirectory.path);
+      }
+    });
 
     _treeController.toggleNode(node);
     setState(() {});
   }
 
   void _onSelectNode(SidebarTreeNode node) {
+    // 如果选择的节点是在最近被切换（展开/收起）的某个节点的子节点，则忽略这次选择
+    final childPath = node.appDirectory.path;
+    for (final parentPath in _recentlyToggled.keys.toList()) {
+      if (_isDescendant(parentPath, childPath)) {
+        return; // 忽略快速点击子节点的问题
+      }
+    }
     if (_selectedNodeId == node.id) return;
     setState(() {
       _selectedNodeId = node.id;
     });
     widget.onNodeSelected?.call(node.appDirectory);
+  }
+
+  bool _isDescendant(String parentPath, String childPath) {
+      // 移除末尾的路径分隔符（统一正斜杠/反斜杠）
+      parentPath = parentPath.replaceAll(RegExp(r'[\\/]+$'), '');
+      childPath = childPath.replaceAll(RegExp(r'[\\/]+$'), '');
+    // 简单判断子路径是否以父路径为前缀，并且多出一个分隔符
+    if (parentPath.isEmpty || childPath.isEmpty) return false;
+    if (parentPath == childPath) return false;
+    if (!childPath.startsWith(parentPath)) return false;
+    if (childPath.length <= parentPath.length) return false;
+    final sep = childPath[parentPath.length];
+    return sep == '/' || sep == '\\';
   }
 
   @override
