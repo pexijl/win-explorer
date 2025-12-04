@@ -3,6 +3,9 @@ import 'package:win_explorer/domain/entities/app_directory.dart';
 
 /// 树形结构节点, 继承自 ChangeNotifier 以支持状态管理
 class SidebarTreeNode extends ChangeNotifier {
+  /// 节点的id
+  final String id = UniqueKey().toString();
+
   /// 节点标签
   final String label;
 
@@ -18,6 +21,7 @@ class SidebarTreeNode extends ChangeNotifier {
 
   /// 是否展开
   bool isExpanded;
+
   /// 是否是占位符 (例如 Loading...)，跳过实际的 I/O 检查和加载
   final bool isPlaceholder;
 
@@ -81,6 +85,6 @@ class SidebarTreeNode extends ChangeNotifier {
 
   @override
   String toString() {
-    return 'SidebarTreeNode{label: $label, appDirectory: $appDirectory, children: $children}';
+    return 'SidebarTreeNode{id: $id, label: $label, appDirectory: $appDirectory, children: $children}';
   }
 }
