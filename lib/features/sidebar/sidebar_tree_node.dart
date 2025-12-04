@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:win_explorer/domain/entities/app_directory.dart';
 
 /// 树形结构节点, 继承自 ChangeNotifier 以支持状态管理
-class SidebarTreeNode extends ChangeNotifier {
+class SidebarTreeNode {
   /// 节点的id
   final String id = UniqueKey().toString();
 
@@ -42,10 +42,8 @@ class SidebarTreeNode extends ChangeNotifier {
     try {
       final subDirs = await appDirectory.getSubdirectories(recursive: false);
       _hasChildren = subDirs.isNotEmpty;
-      notifyListeners();
     } catch (e) {
       _hasChildren = false;
-      notifyListeners();
     }
   }
 
@@ -64,11 +62,9 @@ class SidebarTreeNode extends ChangeNotifier {
           )
           .toList();
       _hasChildren = children!.isNotEmpty;
-      notifyListeners();
     } catch (e) {
       children = [];
       _hasChildren = false;
-      notifyListeners();
     }
   }
 
@@ -77,7 +73,6 @@ class SidebarTreeNode extends ChangeNotifier {
     print('toggleExpanded');
     if (isPlaceholder) return;
     isExpanded = !isExpanded;
-    notifyListeners();
     if (isExpanded) {
       await loadChildren();
     }

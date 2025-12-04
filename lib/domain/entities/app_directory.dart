@@ -16,7 +16,7 @@ class AppDirectory {
 
   /// 从路径创建 AppDirectory
   factory AppDirectory({required String path, String? name}) {
-    return AppDirectory._internal(Directory(path));
+    return AppDirectory._internal(Directory(path), name: name);
   }
 
   /// 从原生 Directory 对象创建
