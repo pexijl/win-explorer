@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:win_explorer/domain/entities/app_directory.dart';
 import 'package:win_explorer/features/sidebar/sidebar_tree_node.dart';
 
 /// [SidebarTreeNode]的展示组件
@@ -35,64 +34,145 @@ class _SidebarNodeItemState extends State<SidebarNodeItem> {
 
   @override
   Widget build(BuildContext context) {
-    final selected = widget.selectedNodeId == widget.node.content.id;
+    final SidebarTreeNode model = context.watch<SidebarTreeNode>();
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final bool isSelected = widget.selectedNodeId == model.id;
+    final bool showExpander = model.showExpander;
+    final bool isPlaceholder = model.isPlaceholder;
+    final double indent = model.depth * 14.0;
+
+    final Color backgroundColor = isSelected
+        ? colorScheme.primary.withValues(alpha: 0.15)
+        : _isHovered
+        ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.35)
+        : Colors.transparent;
+
     return MouseRegion(
-      onHover: (_) => setState(() => _isHovered = true),
+      cursor: isPlaceholder
+          ? SystemMouseCursors.basic
+          : SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
-      child: Container(
-        height: 30,
-        decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(color: Colors.black)),
-          color: selected
-              ? Colors.blue.withValues(alpha: 0.3)
-              : _isHovered
-              ? Colors.grey.withValues(alpha: 0.3)
-              : Colors.transparent,
-        ),
-        child: Row(
-          children: [
-            SizedBox(
-              width: 24,
-              height: 24,
-              child: widget.node.content.hasChildren
-                  ? IconButton(
-                      padding: EdgeInsets.zero,
-                      iconSize: 16,
-                      splashRadius: 12,
-                      icon: Icon(
-                        widget.node.isExpanded
-                            ? Icons.keyboard_arrow_down
-                            : Icons.chevron_right,
-                      ),
-                      onPressed: () {
-                        print('点击了展开/折叠按钮: ${widget.node.content.label}');
-                        widget.onToggleNode(widget.node);
-                      },
-                    )
-                  : null,
-            ),
-            Expanded(
-              child: GestureDetector(
-                onTap: () {
-                  print('点击了节点: ${widget.node.content.label}');
-                  widget.onSelectNode(widget.node.content);
-                },
-                onDoubleTap: () => widget.onToggleNode(widget.node),
-                child: Container(
-                  alignment: Alignment.centerLeft,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.red),
-                  ),
-                  child: Text(
-                    widget.node.content.label,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          customBorder: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(4),
+          ),
+          splashColor: colorScheme.primary.withValues(alpha: 0.12),
+          onTap: isPlaceholder ? null : () => widget.onSelectNode(model),
+          // onDoubleTap: (!showExpander || isPlaceholder)
+          //     ? null
+          //     : () => widget.onToggleNode(widget.node),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOut,
+            height: 36,
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              border: Border(
+                bottom: BorderSide(
+                  color: colorScheme.outlineVariant.withValues(alpha: 0.25),
                 ),
               ),
             ),
-          ],
+            child: Row(
+              children: [
+                SizedBox(width: indent),
+                _buildChevron(showExpander, model, colorScheme),
+                const SizedBox(width: 4),
+                _buildFolderIcon(model, colorScheme, isSelected),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Tooltip(
+                    message: model.appDirectory.path,
+                    waitDuration: const Duration(milliseconds: 600),
+                    child: Text(
+                      model.label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: isSelected
+                            ? FontWeight.w600
+                            : FontWeight.w400,
+                        color: isPlaceholder
+                            ? theme.disabledColor
+                            : theme.textTheme.bodyMedium?.color,
+                      ),
+                    ),
+                  ),
+                ),
+                if (model.isLoadingChildren)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          colorScheme.primary,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
         ),
       ),
     );
+  }
+
+  Widget _buildChevron(
+    bool showExpander,
+    SidebarTreeNode model,
+    ColorScheme colorScheme,
+  ) {
+    if (!showExpander) {
+      return const SizedBox(width: 24, height: 24);
+    }
+    return SizedBox(
+      width: 24,
+      height: 24,
+      child: IconButton(
+        padding: EdgeInsets.zero,
+        splashRadius: 14,
+        iconSize: 18,
+        icon: AnimatedRotation(
+          turns: model.isExpanded ? 0.25 : 0.0,
+          duration: const Duration(milliseconds: 160),
+          child: Icon(Icons.chevron_right, color: colorScheme.onSurfaceVariant),
+        ),
+        onPressed: model.isPlaceholder
+            ? null
+            : () => widget.onToggleNode(widget.node),
+      ),
+    );
+  }
+
+  Widget _buildFolderIcon(
+    SidebarTreeNode model,
+    ColorScheme colorScheme,
+    bool isSelected,
+  ) {
+    IconData iconData;
+    if (model.isPlaceholder) {
+      iconData = Icons.pending;
+    } else if (model.isExpanded && model.showExpander) {
+      iconData = Icons.folder_open;
+    } else {
+      iconData = Icons.folder;
+    }
+
+    final Color iconColor = isSelected
+        ? colorScheme.primary
+        : colorScheme.onSurfaceVariant.withOpacity(
+            model.isPlaceholder ? 0.6 : 0.9,
+          );
+
+    return Icon(iconData, size: 18, color: iconColor);
   }
 }
