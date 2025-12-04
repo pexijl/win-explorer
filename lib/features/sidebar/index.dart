@@ -44,7 +44,6 @@ class _SidebarState extends State<Sidebar> {
         return dir;
       }),
     );
-    print(rootDirectories);
   }
 
   @override
