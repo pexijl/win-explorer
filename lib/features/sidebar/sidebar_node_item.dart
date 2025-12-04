@@ -16,12 +16,16 @@ class SidebarNodeItem extends StatefulWidget {
   /// 点击文件夹回调函数
   final void Function(SidebarTreeNode) onSelectNode;
 
+  /// 动画控制器
+  final dynamic animation;
+
   const SidebarNodeItem({
     super.key,
     required this.node,
     required this.selectedNodeId,
     required this.onToggleNode,
     required this.onSelectNode,
+    this.animation,
   });
 
   @override
@@ -48,7 +52,7 @@ class _SidebarNodeItemState extends State<SidebarNodeItem> {
         ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.35)
         : Colors.transparent;
 
-    return MouseRegion(
+    final Widget item = MouseRegion(
       cursor: isPlaceholder
           ? SystemMouseCursors.basic
           : SystemMouseCursors.click,
@@ -124,6 +128,15 @@ class _SidebarNodeItemState extends State<SidebarNodeItem> {
         ),
       ),
     );
+
+    if (widget.animation != null && widget.animation is Animation<double>) {
+      return FadeTransition(
+        opacity: widget.animation,
+        child: item,
+      );
+    } else {
+      return item;
+    }
   }
 
   Widget _buildChevron(

@@ -174,6 +174,7 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
                 selectedNodeId: _selectedNodeId,
                 onToggleNode: _onToggleNode,
                 onSelectNode: _onSelectNode,
+                animation: animation,
               ),
             );
           },
