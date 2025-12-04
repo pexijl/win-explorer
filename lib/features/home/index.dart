@@ -18,7 +18,7 @@ class _HomePageState extends State<HomePage> {
   double get screenWidth => MediaQuery.sizeOf(context).width;
   double get screenHeight => MediaQuery.sizeOf(context).height;
   MouseCursor _currentCursor = SystemMouseCursors.basic;
-  
+
   AppDirectory? _currentDirectory;
   final List<AppDirectory> _history = [];
   int _historyIndex = -1;
@@ -27,7 +27,7 @@ class _HomePageState extends State<HomePage> {
     if (_currentDirectory?.path == directory.path) return;
 
     setState(() {
-      // 如果我们处于历史记录的中间并导航到一个新位置，  
+      // 如果我们处于历史记录的中间并导航到一个新位置，
       // 我们会截断向前的历史记录。
       if (_historyIndex < _history.length - 1) {
         _history.removeRange(_historyIndex + 1, _history.length);
@@ -60,13 +60,13 @@ class _HomePageState extends State<HomePage> {
     if (_currentDirectory != null) {
       final parent = _currentDirectory!.parent;
       if (parent.path != _currentDirectory!.path) {
-         _navigateTo(parent);
+        _navigateTo(parent);
       }
     }
   }
 
   void _handlePathChanged(String path) {
-    _navigateTo(AppDirectory(path));
+    _navigateTo(AppDirectory(path: path));
   }
 
   @override

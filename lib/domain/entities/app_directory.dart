@@ -9,13 +9,13 @@ class AppDirectory {
   /// 底层 Directory 对象
   final Directory _directory;
 
-  AppDirectory._internal(this._directory)
-    : name = path_utils.basename(_directory.path);
+  AppDirectory._internal(this._directory, {String? name})
+    : name = name ?? path_utils.basename(_directory.path);
 
   // ========== 工厂构造函数 ==========
 
   /// 从路径创建 AppDirectory
-  factory AppDirectory(String path) {
+  factory AppDirectory({required String path, String? name}) {
     return AppDirectory._internal(Directory(path));
   }
 
@@ -47,7 +47,7 @@ class AppDirectory {
   String get parentPath => path_utils.dirname(path);
 
   /// 获取父目录的 AppDirectory 对象
-  AppDirectory get parent => AppDirectory(parentPath);
+  AppDirectory get parent => AppDirectory(path: parentPath);
 
   // ========== 状态检查 ==========
 
@@ -307,7 +307,7 @@ class AppDirectory {
 
   /// 复制目录到新位置
   Future<AppDirectory> copyTo(String newPath, {bool recursive = true}) async {
-    final targetDir = AppDirectory(newPath);
+    final targetDir = AppDirectory(path: newPath);
     await targetDir.createIfNotExists(recursive: true);
 
     try {
@@ -343,7 +343,7 @@ class AppDirectory {
   /// 在目录中创建子目录
   Future<AppDirectory> createSubdirectory(String name) async {
     final subdirPath = path_utils.join(path, name);
-    final subdir = AppDirectory(subdirPath);
+    final subdir = AppDirectory(path: subdirPath);
     await subdir.createIfNotExists();
     return subdir;
   }

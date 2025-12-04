@@ -58,12 +58,7 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
     // 构建根节点
     final List<SidebarTreeNode> roots = [];
     for (AppDirectory root in widget.rootDirectories) {
-      roots.add(
-        SidebarTreeNode(
-          label: root.name,
-          appDirectory: root,
-        ),
-      );
+      roots.add(SidebarTreeNode(label: root.name, appDirectory: root));
     }
     setState(() {
       _tree = _mapNodes(roots); // 映射为树形结构
@@ -89,7 +84,7 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
           TreeSliverNode(
             SidebarTreeNode(
               label: 'Loading...',
-              appDirectory: AppDirectory(''),
+              appDirectory: AppDirectory(path: ''),
               isPlaceholder: true,
             ),
           ),
@@ -155,7 +150,7 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
           TreeSliverNode(
             SidebarTreeNode(
               label: 'Loading...',
-              appDirectory: AppDirectory(''),
+              appDirectory: AppDirectory(path: ''),
               isPlaceholder: true,
             ),
           ),

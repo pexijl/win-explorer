@@ -39,9 +39,7 @@ class _SidebarState extends State<Sidebar> {
     final drives = Win32DriveService().getSystemDrives();
     rootDirectories.addAll(
       drives.map((drive) {
-        AppDirectory dir = AppDirectory(drive.mountPoint);
-        dir.name = drive.name;
-        return dir;
+        return AppDirectory(path: drive.mountPoint, name: drive.name);
       }),
     );
   }
