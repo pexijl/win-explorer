@@ -73,7 +73,10 @@ class _SidebarNodeItemState extends State<SidebarNodeItem> {
             ),
             Expanded(
               child: GestureDetector(
-                onTap: () => widget.onSelectNode(widget.node.content),
+                onTap: () {
+                  print('点击了节点: ${widget.node.content.label}');
+                  widget.onSelectNode(widget.node.content);
+                },
                 onDoubleTap: () => widget.onToggleNode(widget.node),
                 child: Container(
                   alignment: Alignment.centerLeft,
