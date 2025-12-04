@@ -9,7 +9,8 @@ class AppDirectory {
   /// 底层 Directory 对象
   final Directory _directory;
 
-  AppDirectory._internal(this._directory);
+  AppDirectory._internal(this._directory)
+    : name = path_utils.basename(_directory.path);
 
   // ========== 工厂构造函数 ==========
 
@@ -40,7 +41,7 @@ class AppDirectory {
   String get path => _directory.path;
 
   /// 获取目录名称（路径的最后一部分）
-  String get name => path_utils.basename(path);
+  String name;
 
   /// 获取父目录路径
   String get parentPath => path_utils.dirname(path);
@@ -635,7 +636,9 @@ class AppDirectory {
   int get hashCode => path.hashCode;
 
   @override
-  String toString() => 'AppDirectory{path: $path}';
+  String toString() {
+    return 'AppDirectory{path: $path, name: $name}';
+  }
 }
 
 // ========== 辅助数据类 ==========
