@@ -7,11 +7,11 @@ class SidebarTreeNodeTile extends StatefulWidget {
   /// 节点
   final SidebarTreeNode node;
 
-  /// 选中的节点
-  final SidebarTreeNode? selectedNode;
+  /// 选中的节点的id
+  final String? selectedNodeId;
 
   /// 点击节点
-  final Function(SidebarTreeNode) onNodeSelected;
+  final Function(String) onNodeSelected;
 
   /// 节点变化回调: 传入发生变化的 `SidebarTreeNode`
   final ValueChanged<SidebarTreeNode>? onNodeChanged;
@@ -19,7 +19,7 @@ class SidebarTreeNodeTile extends StatefulWidget {
   const SidebarTreeNodeTile({
     super.key,
     required this.node,
-    required this.selectedNode,
+    required this.selectedNodeId,
     required this.onNodeSelected,
     this.onNodeChanged,
   });
@@ -33,11 +33,6 @@ class _SidebarTreeNodeTileState extends State<SidebarTreeNodeTile> {
   bool _isHovered = false;
 
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final listenerNode = context.watch<SidebarTreeNode>();
     return _buildNodeTile(listenerNode);
@@ -45,13 +40,18 @@ class _SidebarTreeNodeTileState extends State<SidebarTreeNodeTile> {
 
   /// 构建节点, 通过 [ChangeNotifierProvider] 包装, 以便监听节点变化
   Widget _buildNodeTile(SidebarTreeNode listenerNode) {
-    final isSelected = widget.node == widget.selectedNode;
+    final isSelected = widget.node.id == widget.selectedNodeId;
     final isPlaceholder = widget.node.isPlaceholder;
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
       child: GestureDetector(
-        onTap: isPlaceholder ? null : () => widget.onNodeSelected(widget.node),
+        onTap: isPlaceholder
+            ? null
+            : () {
+                print('Node tapped: ${widget.node.id}');
+                widget.onNodeSelected(widget.node.id);
+              },
         child: Container(
           height: 30,
           decoration: BoxDecoration(
@@ -105,6 +105,4 @@ class _SidebarTreeNodeTileState extends State<SidebarTreeNodeTile> {
       ),
     );
   }
-
-
 }

@@ -10,22 +10,25 @@ import 'package:win_explorer/features/sidebar/sidebar_tree_node_title.dart';
 
 /// 树形结构侧边栏视图
 class SidebarTreeView extends StatefulWidget {
-  /// 盘符列表
-  final List<Drive> drives;
+  /// 根目录列表
+  final List<AppDirectory> rootDirectories;
 
   /// 节点选中回调
   final Function(AppDirectory)? onNodeSelected;
 
   /// 构造函数
-  const SidebarTreeView({super.key, required this.drives, this.onNodeSelected});
-
+  const SidebarTreeView({
+    super.key,
+    required this.rootDirectories,
+    this.onNodeSelected,
+  });
   @override
   State<SidebarTreeView> createState() => _SidebarTreeViewState();
 }
 
 class _SidebarTreeViewState extends State<SidebarTreeView> {
   /// 当前选中的节点
-  SidebarTreeNode? _selectedNode;
+  String? _selectedNodeId;
 
   /// 树形结构
   List<TreeSliverNode<SidebarTreeNode>> _tree = [];
@@ -45,7 +48,7 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
   @override
   void didUpdateWidget(covariant SidebarTreeView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (!listEquals(oldWidget.drives, widget.drives)) {
+    if (!listEquals(oldWidget.rootDirectories, widget.rootDirectories)) {
       _buildTree();
     }
   }
@@ -54,15 +57,9 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
   Future<void> _buildTree() async {
     // 构建根节点
     final List<SidebarTreeNode> roots = [];
-    for (Drive drive in widget.drives) {
-      roots.add(
-        SidebarTreeNode(
-          label: drive.name,
-          appDirectory: AppDirectory(drive.mountPoint),
-        ),
-      );
+    for (AppDirectory root in widget.rootDirectories) {
+      roots.add(SidebarTreeNode(label: root.name, appDirectory: root));
     }
-
     setState(() {
       _tree = _mapNodes(roots); // 映射为树形结构
     });
@@ -76,26 +73,36 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
     bool updated = false;
 
     // 根据 content 创建一个新的 [TreeSliverNode]
-    TreeSliverNode<SidebarTreeNode> buildNodeFromContent(SidebarTreeNode content) {
+    TreeSliverNode<SidebarTreeNode> buildNodeFromContent(
+      SidebarTreeNode content,
+    ) {
       List<TreeSliverNode<SidebarTreeNode>> childrenNodes = [];
       if (content.children != null) {
         childrenNodes = _mapNodes(content.children!);
       } else if (content.hasChildren) {
         childrenNodes = [
-            TreeSliverNode(
-              SidebarTreeNode(
-                label: 'Loading...',
-                appDirectory: AppDirectory(''),
-                isPlaceholder: true,
-              ),
+          TreeSliverNode(
+            SidebarTreeNode(
+              label: 'Loading...',
+              appDirectory: AppDirectory(path: ''),
+              isPlaceholder: true,
             ),
+          ),
         ];
       }
-      return TreeSliverNode(content, children: childrenNodes, expanded: content.isExpanded);
+      return TreeSliverNode(
+        content,
+        children: childrenNodes,
+        expanded: content.isExpanded,
+      );
     }
 
     // 在节点列表中找到并替换对应 content 的节点
-    bool replaceNodeInList(List<TreeSliverNode<SidebarTreeNode>> nodes, SidebarTreeNode content, TreeSliverNode<SidebarTreeNode> newNode) {
+    bool replaceNodeInList(
+      List<TreeSliverNode<SidebarTreeNode>> nodes,
+      SidebarTreeNode content,
+      TreeSliverNode<SidebarTreeNode> newNode,
+    ) {
       for (var i = 0; i < nodes.length; i++) {
         final n = nodes[i];
         if (n.content == content) {
@@ -140,13 +147,13 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
         childrenNodes = _mapNodes(node.children!);
       } else if (node.hasChildren) {
         childrenNodes = [
-            TreeSliverNode(
-              SidebarTreeNode(
-                label: 'Loading...',
-                appDirectory: AppDirectory(''),
-                isPlaceholder: true,
-              ),
+          TreeSliverNode(
+            SidebarTreeNode(
+              label: 'Loading...',
+              appDirectory: AppDirectory(path: ''),
+              isPlaceholder: true,
             ),
+          ),
         ];
       }
 
@@ -159,7 +166,9 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
   }
 
   /// 订阅给定节点以及其子节点的变更通知, 并记录回调以便取消订阅
-  void _subscribeToTreeNodesFromList(List<TreeSliverNode<SidebarTreeNode>> nodes) {
+  void _subscribeToTreeNodesFromList(
+    List<TreeSliverNode<SidebarTreeNode>> nodes,
+  ) {
     for (final node in nodes) {
       final content = node.content;
       // 对于占位符节点不订阅
@@ -176,7 +185,9 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
   }
 
   /// 从现有树结构订阅所有节点
-  void _subscribeToTreeNodesFromTree(List<TreeSliverNode<SidebarTreeNode>> tree) {
+  void _subscribeToTreeNodesFromTree(
+    List<TreeSliverNode<SidebarTreeNode>> tree,
+  ) {
     _unsubscribeAll();
     _subscribeToTreeNodesFromList(tree);
   }
@@ -200,14 +211,14 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
             final content = node.content as SidebarTreeNode;
             return ChangeNotifierProvider<SidebarTreeNode>.value(
               value: content,
-                child: SidebarTreeNodeTile(
+              child: SidebarTreeNodeTile(
                 node: content,
-                selectedNode: _selectedNode,
-                onNodeSelected: (n) {
+                selectedNodeId: _selectedNodeId,
+                onNodeSelected: (nodeId) {
                   setState(() {
-                    _selectedNode = n;
+                    _selectedNodeId = nodeId;
                   });
-                  widget.onNodeSelected?.call(n.appDirectory);
+                  widget.onNodeSelected?.call(content.appDirectory);
                 },
                 onNodeChanged: (changedNode) => _onNodeChanged(changedNode),
               ),

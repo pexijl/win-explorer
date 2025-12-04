@@ -27,16 +27,21 @@ class Sidebar extends StatefulWidget {
 }
 
 class _SidebarState extends State<Sidebar> {
-  final List<Drive> drives = [];
+  final List<AppDirectory> rootDirectories = [];
 
   @override
   void initState() {
     super.initState();
-    _getDrives();
+    _getRootDirectories();
   }
 
-  void _getDrives() {
-    drives.addAll(Win32DriveService().getSystemDrives());
+  void _getRootDirectories() {
+    final drives = Win32DriveService().getSystemDrives();
+    rootDirectories.addAll(
+      drives.map((drive) {
+        return AppDirectory(path: drive.mountPoint, name: drive.name);
+      }),
+    );
   }
 
   @override
@@ -52,7 +57,7 @@ class _SidebarState extends State<Sidebar> {
           border: Border.all(color: Colors.black, width: 1),
         ),
         child: SidebarTreeView(
-          drives: drives,
+          rootDirectories: rootDirectories,
           onNodeSelected: (appDir) => widget.onDirectorySelected(appDir),
         ),
       ),
