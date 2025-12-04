@@ -88,6 +88,12 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
               node: node as TreeSliverNode<SidebarTreeNode>,
               selectedNodeId: _selectedNodeId,
               onToggleNode: (node) => _onToggleNode(node),
+              onSelectNode: (node) {
+                setState(() {
+                  _selectedNodeId = node.id;
+                });
+                widget.onNodeSelected?.call(node.appDirectory);
+              },
             );
           },
         ),

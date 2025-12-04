@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:win_explorer/domain/entities/app_directory.dart';
 import 'package:win_explorer/features/sidebar/sidebar_tree_node.dart';
 
 /// [SidebarTreeNode]的展示组件
@@ -13,11 +14,15 @@ class SidebarNodeItem extends StatefulWidget {
   /// 点击展开/折叠回调函数
   final void Function(TreeSliverNode<SidebarTreeNode>) onToggleNode;
 
+  /// 点击文件夹回调函数
+  final void Function(SidebarTreeNode) onSelectNode;
+
   const SidebarNodeItem({
     super.key,
     required this.node,
     required this.selectedNodeId,
     required this.onToggleNode,
+    required this.onSelectNode,
   });
 
   @override
@@ -30,50 +35,59 @@ class _SidebarNodeItemState extends State<SidebarNodeItem> {
 
   @override
   Widget build(BuildContext context) {
+    final selected = widget.selectedNodeId == widget.node.content.id;
     return MouseRegion(
       onHover: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
-      child: GestureDetector(
-        onTap: () {
-          print('点击了节点: ${widget.node.content.label}');
-        },
-        child: Container(
-          height: 30,
-          decoration: BoxDecoration(
-            color: _isHovered
-                ? Colors.grey.withValues(alpha: 0.1)
-                : Colors.transparent,
-          ),
-          child: Row(
-            children: [
-              SizedBox(
-                width: 24,
-                height: 24,
-                child: widget.node.content.hasChildren
-                    ? IconButton(
-                        padding: EdgeInsets.zero,
-                        iconSize: 16,
-                        splashRadius: 12,
-                        icon: Icon(
-                          widget.node.isExpanded
-                              ? Icons.keyboard_arrow_down
-                              : Icons.chevron_right,
-                        ),
-                        onPressed: () {
-                          print('点击了展开/折叠按钮: ${widget.node.content.label}');
-                          widget.onToggleNode(widget.node);
-                        },
-                      )
-                    : null,
-              ),
-              Expanded(
-                child: Text(
-                  widget.node.content.label,
-                  overflow: TextOverflow.ellipsis,
+      child: Container(
+        height: 30,
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: Colors.black)),
+          color: selected
+              ? Colors.blue.withValues(alpha: 0.3)
+              : _isHovered
+              ? Colors.grey.withValues(alpha: 0.3)
+              : Colors.transparent,
+        ),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 24,
+              height: 24,
+              child: widget.node.content.hasChildren
+                  ? IconButton(
+                      padding: EdgeInsets.zero,
+                      iconSize: 16,
+                      splashRadius: 12,
+                      icon: Icon(
+                        widget.node.isExpanded
+                            ? Icons.keyboard_arrow_down
+                            : Icons.chevron_right,
+                      ),
+                      onPressed: () {
+                        print('点击了展开/折叠按钮: ${widget.node.content.label}');
+                        widget.onToggleNode(widget.node);
+                      },
+                    )
+                  : null,
+            ),
+            Expanded(
+              child: GestureDetector(
+                onTap: () => widget.onSelectNode(widget.node.content),
+                onDoubleTap: () => widget.onToggleNode(widget.node),
+                child: Container(
+                  alignment: Alignment.centerLeft,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.red),
+                  ),
+                  child: Text(
+                    widget.node.content.label,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
