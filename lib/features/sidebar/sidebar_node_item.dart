@@ -44,7 +44,9 @@ class _SidebarNodeItemState extends State<SidebarNodeItem> {
     }
     return GestureDetector(
       onTap: () {
-        print('选中节点：${widget.node.data!.path}');
+        if (widget.node.data != null) {
+          widget.onSelectNode(widget.node.key);
+        }
       },
       child: Container(
         height: 40,

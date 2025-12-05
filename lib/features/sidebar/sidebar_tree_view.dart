@@ -1,63 +1,92 @@
 import 'dart:async';
 
 import 'package:animated_tree_view/animated_tree_view.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:win_explorer/domain/entities/app_directory.dart';
 import 'package:win_explorer/features/sidebar/sidebar_node_item.dart';
-import 'package:win_explorer/features/sidebar/sidebar_tree_node.dart';
 
-/// 树形结构侧边栏视图
 class SidebarTreeView extends StatefulWidget {
-  /// 根目录列表
   final List<AppDirectory> rootDirectories;
-
-  /// 节点选中回调
   final Function(AppDirectory)? onNodeSelected;
 
-  /// 构造函数
   const SidebarTreeView({
     super.key,
     required this.rootDirectories,
     this.onNodeSelected,
   });
+
   @override
   State<SidebarTreeView> createState() => _SidebarTreeViewState();
 }
 
 class _SidebarTreeViewState extends State<SidebarTreeView> {
-  String? selectedNodeKey;
-
-  final TreeNode<AppDirectory> _tree = TreeNode.root(
-    data: AppDirectory(path: '/root', name: '此电脑'),
-  );
+  String? _selectedNodeKey;
+  late final TreeNode<AppDirectory> _tree;
 
   @override
   void initState() {
     super.initState();
+    _tree = TreeNode.root(data: AppDirectory(path: 'root', name: 'Root'));
     _initTree();
   }
 
-  void _initTree() {
-    _tree.addAll(
-      widget.rootDirectories.map(
-        (directory) => TreeNode(data: directory, key: '0${directory.id}'),
-      ),
-    );
+  @override
+  void didUpdateWidget(covariant SidebarTreeView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.rootDirectories != oldWidget.rootDirectories) {
+      _tree.clear();
+      _initTree();
+    }
+  }
+
+  String _generateKey(String path) {
+    return path.replaceAll('.', '{dot}');
+  }
+
+  Future<void> _initTree() async {
+    for (var dir in widget.rootDirectories) {
+      final key = _generateKey(dir.path);
+      if (!_tree.children.containsKey(key)) {
+        final node = TreeNode<AppDirectory>(key: key, data: dir);
+        _tree.add(node);
+        await _loadChildren(node);
+      }
+    }
+    if (mounted) setState(() {});
   }
 
   Future<void> _loadChildren(TreeNode<AppDirectory> node) async {
     final directory = node.data;
     if (directory == null) return;
-    final subdirectories = await directory.getSubdirectories(recursive: false);
-    print(subdirectories);
-    node.addAll(
-      subdirectories.map(
-        (directory) =>
-            TreeNode(data: directory, key: '${node.level}${directory.id}'),
-      ),
-    );
+
+    try {
+      if (node.children.isEmpty) {
+        final subdirectories = await directory.getSubdirectories(recursive: false);
+        for (var subDir in subdirectories) {
+          final subNode = TreeNode<AppDirectory>(key: _generateKey(subDir.path), data: subDir);
+          node.add(subNode);
+        }
+      }
+
+      for (var child in node.children.values) {
+        final childNode = child as TreeNode<AppDirectory>;
+        if (childNode.children.isEmpty) {
+          final childDir = childNode.data;
+          if (childDir != null) {
+            try {
+              final subSubDirs = await childDir.getSubdirectories(recursive: false);
+              for (var subSubDir in subSubDirs) {
+                childNode.add(TreeNode<AppDirectory>(key: _generateKey(subSubDir.path), data: subSubDir));
+              }
+            } catch (e) {
+              // Ignore errors
+            }
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error loading children for ${directory.path}: $e');
+    }
   }
 
   @override
@@ -66,7 +95,21 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
       slivers: [
         SliverTreeView.simple(
           tree: _tree,
-          indentation: const Indentation(),
+          builder: (context, node) {
+            return SidebarNodeItem(
+              node: node,
+              selectedNodeKey: _selectedNodeKey,
+              onToggleNode: (node) {},
+              onSelectNode: (path) {
+                setState(() {
+                  _selectedNodeKey = path;
+                });
+                if (node.data != null) {
+                  widget.onNodeSelected?.call(node.data!);
+                }
+              },
+            );
+          },
           expansionIndicatorBuilder: (context, node) {
             return ChevronIndicator.rightDown(
               tree: node,
@@ -74,21 +117,10 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
               color: Colors.grey[700],
             );
           },
-          builder: (context, node) {
-            return SidebarNodeItem(
-              node: node,
-              selectedNodeKey: selectedNodeKey,
-              onToggleNode: (node) {
-                print('toggle node: $node');
-              },
-              onSelectNode: (path) {
-                print('选中节点：$path');
-              },
-            );
-          },
-          onItemTap: (node) {
-            print('展开/折叠：${node.key}');
-            _loadChildren(node);
+          indentation: const Indentation(),
+          onItemTap: (node) async {
+            await _loadChildren(node);
+            setState(() {});
           },
         ),
       ],
