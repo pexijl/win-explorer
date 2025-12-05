@@ -47,18 +47,18 @@ class _SidebarNodeItemState extends State<SidebarNodeItem> {
       onTap: () {
         print('选中节点：${widget.node.data!.path}');
       },
-      child: Padding(
-        padding: const EdgeInsets.only(left: 30),
-        child: Container(
-          height: 40,
-          decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(color: Theme.of(context).colorScheme.outline),
-            ),
-            color: _isHovered
-                ? Theme.of(context).colorScheme.primaryContainer
-                : null,
+      child: Container(
+        height: 40,
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(color: Theme.of(context).colorScheme.outline),
           ),
+          color: _isHovered
+              ? Theme.of(context).colorScheme.primaryContainer
+              : null,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.only(left: 30),
           child: MouseRegion(
             cursor: SystemMouseCursors.click,
             onEnter: (event) => setState(() => _isHovered = true),
