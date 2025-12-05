@@ -48,6 +48,7 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
       final key = _generateKey(dir.path);
       if (!_tree.children.containsKey(key)) {
         final node = TreeNode<AppDirectory>(key: key, data: dir);
+        node.expansionNotifier.value = false;
         _tree.add(node);
         await _loadChildren(node);
       }
@@ -64,6 +65,7 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
         final subdirectories = await directory.getSubdirectories(recursive: false);
         for (var subDir in subdirectories) {
           final subNode = TreeNode<AppDirectory>(key: _generateKey(subDir.path), data: subDir);
+          subNode.expansionNotifier.value = false;
           node.add(subNode);
         }
       }
@@ -77,6 +79,7 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
               final subSubDirs = await childDir.getSubdirectories(recursive: false);
               for (var subSubDir in subSubDirs) {
                 final grandChild = TreeNode<AppDirectory>(key: _generateKey(subSubDir.path), data: subSubDir);
+                grandChild.expansionNotifier.value = false;
                 childNode.add(grandChild);
               }
             } catch (e) {
@@ -96,7 +99,7 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
       slivers: [
         SliverTreeView.simple(
           tree: _tree,
-          showRootNode: true,
+          showRootNode: false,
           builder: (context, node) {
             return SidebarNodeItem(
               node: node,
