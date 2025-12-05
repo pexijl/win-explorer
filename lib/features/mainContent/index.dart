@@ -113,12 +113,15 @@ class _MainContentState extends State<MainContent> {
         final isDir = entity is Directory;
         final name = entity.path.split(Platform.pathSeparator).last;
 
-        return InkWell(
+        return GestureDetector(
           onTap: () {
             // Handle selection
           },
           onDoubleTap: () {
             // Handle navigation if it's a directory
+          },
+          onSecondaryTapDown: (details) {
+            _showContextMenu(context, details.globalPosition, entity);
           },
           child: Tooltip(
             message: name,
@@ -144,5 +147,32 @@ class _MainContentState extends State<MainContent> {
         );
       },
     );
+  }
+
+  void _showContextMenu(
+    BuildContext context,
+    Offset position,
+    FileSystemEntity entity,
+  ) {
+    final isDir = entity is Directory;
+    showMenu(
+      context: context,
+      position: RelativeRect.fromLTRB(
+        position.dx,
+        position.dy,
+        position.dx + 1,
+        position.dy + 1,
+      ),
+      items: [
+        PopupMenuItem(child: Text(isDir ? '打开文件夹' : '打开文件'), value: 'open'),
+        PopupMenuItem(child: Text('属性'), value: 'properties'),
+      ],
+    ).then((value) {
+      if (value == 'open') {
+        // TODO: Implement open action
+      } else if (value == 'properties') {
+        // TODO: Implement properties action
+      }
+    });
   }
 }

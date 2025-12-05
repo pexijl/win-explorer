@@ -266,6 +266,20 @@ class AppDirectory {
     return results;
   }
 
+  /// 快速检查是否包含子目录
+  Future<bool> hasSubdirectories({bool recursive = false}) async {
+    try {
+      await for (final entity in _directory.list(recursive: recursive)) {
+        if (entity is Directory) {
+          return true;
+        }
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
+  }
+
   /// 获取子目录列表
   Future<List<AppDirectory>> getSubdirectories({bool recursive = false}) async {
     try {
