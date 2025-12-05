@@ -96,7 +96,7 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
       slivers: [
         SliverTreeView.simple(
           tree: _tree,
-          showRootNode: false,
+          showRootNode: true,
           builder: (context, node) {
             return SidebarNodeItem(
               node: node,
