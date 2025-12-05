@@ -76,7 +76,8 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
             try {
               final subSubDirs = await childDir.getSubdirectories(recursive: false);
               for (var subSubDir in subSubDirs) {
-                childNode.add(TreeNode<AppDirectory>(key: _generateKey(subSubDir.path), data: subSubDir));
+                final grandChild = TreeNode<AppDirectory>(key: _generateKey(subSubDir.path), data: subSubDir);
+                childNode.add(grandChild);
               }
             } catch (e) {
               // Ignore errors
@@ -95,6 +96,7 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
       slivers: [
         SliverTreeView.simple(
           tree: _tree,
+          showRootNode: false,
           builder: (context, node) {
             return SidebarNodeItem(
               node: node,
