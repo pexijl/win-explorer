@@ -30,7 +30,7 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
   String? selectedNodeKey;
 
   final TreeNode<AppDirectory> _tree = TreeNode.root(
-    data: AppDirectory(path: '/', name: '此电脑'),
+    data: AppDirectory(path: '/root', name: '此电脑'),
   );
 
   @override
@@ -40,9 +40,24 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
   }
 
   void _initTree() {
-    for (AppDirectory directory in widget.rootDirectories) {
-      _tree.add(TreeNode(data: directory, key: directory.path));
-    }
+    _tree.addAll(
+      widget.rootDirectories.map(
+        (directory) => TreeNode(data: directory, key: '0${directory.id}'),
+      ),
+    );
+  }
+
+  Future<void> _loadChildren(TreeNode<AppDirectory> node) async {
+    final directory = node.data;
+    if (directory == null) return;
+    final subdirectories = await directory.getSubdirectories(recursive: false);
+    print(subdirectories);
+    node.addAll(
+      subdirectories.map(
+        (directory) =>
+            TreeNode(data: directory, key: '${node.level}${directory.id}'),
+      ),
+    );
   }
 
   @override
@@ -51,6 +66,7 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
       slivers: [
         SliverTreeView.simple(
           tree: _tree,
+          indentation: const Indentation(),
           expansionIndicatorBuilder: (context, node) {
             return ChevronIndicator.rightDown(
               tree: node,
@@ -69,6 +85,10 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
                 print('选中节点：$path');
               },
             );
+          },
+          onItemTap: (node) {
+            print('展开/折叠：${node.key}');
+            _loadChildren(node);
           },
         ),
       ],

@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import 'package:win_explorer/domain/entities/app_directory.dart';
 import 'package:win_explorer/features/sidebar/sidebar_tree_node.dart';
 
-/// [SidebarTreeNode]的展示组件
 class SidebarNodeItem extends StatefulWidget {
   /// 节点数据
   final TreeNode<AppDirectory> node;
