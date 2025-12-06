@@ -81,7 +81,12 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
         node.isExpanded = !node.isExpanded;
         setState(() {});
       },
-      onSelectNode: (path) {},
+      onSelectNode: (path) {
+        print('收到:选中 ${node.data.name}');
+        _selectedNodePath = path;
+        
+        setState(() {});
+      },
     );
   }
 
