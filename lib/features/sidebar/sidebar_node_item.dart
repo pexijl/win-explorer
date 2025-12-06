@@ -38,6 +38,7 @@ class _SidebarNodeItemState extends State<SidebarNodeItem> {
         widget.onSelectNode(widget.node.data);
       },
       child: Container(
+        padding: EdgeInsets.only(right: 14),
         height: 40,
         decoration: BoxDecoration(color: Colors.white),
         child: MouseRegion(
