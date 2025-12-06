@@ -114,6 +114,7 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
       scrollbarOrientation: ScrollbarOrientation.left,
       controller: _scrollController,
       thumbVisibility: true,
+      thickness: 8.0,
       child: CustomScrollView(
         controller: _scrollController,
         slivers: [
