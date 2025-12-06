@@ -96,7 +96,7 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     Sidebar(
                       left: 0,
-                      right: 0,
+                      right: screenWidth - _sliderWidth,
                       top: 0,
                       bottom: 0,
                       onDirectorySelected: _navigateTo,

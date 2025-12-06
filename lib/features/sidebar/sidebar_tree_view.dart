@@ -110,33 +110,26 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
 
   @override
   Widget build(BuildContext context) {
-    return RawScrollbar(
-      scrollbarOrientation: ScrollbarOrientation.left,
-      controller: _scrollController,
-      thumbVisibility: true,
-      thickness: 8.0,
-      child: CustomScrollView(
-        controller: _scrollController,
-        slivers: [
-          SliverList.builder(
-            itemCount: 1,
-            itemBuilder: (context, index) {
-              return Column(
-                children: [
-                  _buildParentNode(root),
-                  AnimatedSize(
-                    duration: const Duration(milliseconds: 300),
-                    alignment: Alignment.topRight,
-                    child: root.isExpanded
-                        ? _buildChildNodes(root)
-                        : const SizedBox.shrink(),
-                  ),
-                ],
-              );
-            },
-          ),
-        ],
-      ),
+    return CustomScrollView(
+      slivers: [
+        SliverList.builder(
+          itemCount: 1,
+          itemBuilder: (context, index) {
+            return Column(
+              children: [
+                _buildParentNode(root),
+                AnimatedSize(
+                  duration: const Duration(milliseconds: 300),
+                  alignment: Alignment.topRight,
+                  child: root.isExpanded
+                      ? _buildChildNodes(root)
+                      : const SizedBox.shrink(),
+                ),
+              ],
+            );
+          },
+        ),
+      ],
     );
   }
 }
