@@ -54,7 +54,7 @@ class _SidebarState extends State<Sidebar> {
       bottom: widget._bottom,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.grey[300],
+          color: Colors.white,
           border: Border.all(color: Colors.black, width: 1),
         ),
         child: SidebarTreeView(

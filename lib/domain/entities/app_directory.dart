@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path_utils;
 import 'package:win_explorer/domain/entities/app_file.dart';
 import 'package:win_explorer/domain/entities/app_file_system_entity.dart';
@@ -33,6 +34,8 @@ class AppDirectory {
   }
 
   // ========== 基础属性 ==========
+
+  final String id = UniqueKey().toString();
 
   /// 获取底层 Directory 对象
   Directory get directory => _directory;
