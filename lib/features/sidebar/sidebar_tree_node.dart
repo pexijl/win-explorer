@@ -38,6 +38,6 @@ class SidebarTreeNode {
 
   @override
   String toString() {
-    return 'SidebarTreeNode{data: $data, level: $level, isExpanded: $isExpanded, hasChildren: $hasChildren, children: ${children?.length ?? 0} items}';
+    return 'SidebarTreeNode{data: $data, level: $level, isExpanded: $isExpanded, hasChildren: $hasChildren, children: ${children.length} items}';
   }
 }
