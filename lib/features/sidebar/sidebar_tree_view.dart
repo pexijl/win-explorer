@@ -53,6 +53,7 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
       if (!_tree.children.containsKey(key)) {
         final node = TreeNode<AppDirectory>(key: key, data: dir);
         await _loadChildren(node);
+        await _loadGrandChildren(node);
         _tree.add(node);
       }
     }
@@ -75,6 +76,24 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
       }
     } catch (e) {
       debugPrint('Error loading children for ${directory.path}: $e');
+    }
+  }
+
+  Future<void> _loadGrandChildren(TreeNode<AppDirectory> node) async {
+    try {
+      // 确保node的子节点已加载
+      if (node.children.isEmpty) {
+        await _loadChildren(node);
+      }
+      // 加载所有子节点的子节点（孙节点）
+      for (var child in node.childrenAsList) {
+        final childNode = child as TreeNode<AppDirectory>;
+        if (childNode.children.isEmpty) {
+          await _loadChildren(childNode);
+        }
+      }
+    } catch (e) {
+      debugPrint('Error loading grandchildren for ${node.data?.path}: $e');
     }
   }
 
