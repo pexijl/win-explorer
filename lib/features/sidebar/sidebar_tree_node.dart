@@ -7,10 +7,8 @@ class SidebarTreeNode {
   final AppDirectory data;
   final int level;
   bool isExpanded;
-
-  final List<SidebarTreeNode> children = [];
-
   bool hasChildren;
+  final List<SidebarTreeNode> children = [];
 
   SidebarTreeNode({
     required this.data,
