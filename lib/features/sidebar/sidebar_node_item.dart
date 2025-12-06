@@ -80,15 +80,25 @@ class _SidebarNodeItemState extends State<SidebarNodeItem> {
                         )
                       : SizedBox(width: 24),
                 ),
-                Icon(Icons.folder, color: Colors.amber),
+                Icon(
+                  Icons.folder,
+                  color: Colors.amber,
+                  shadows: [
+                    Shadow(
+                      color: Colors.black,
+                      offset: Offset(0, 0),
+                      blurRadius: 1,
+                    ),
+                  ],
+                ),
                 SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     widget.node.data.name,
                     style: TextStyle(
                       fontWeight: widget.node.data.path == widget.path
-                          ? FontWeight.bold
-                          : FontWeight.normal,
+                          ? FontWeight.w700
+                          : FontWeight.w500,
                       color: widget.node.data.path == widget.path
                           ? Theme.of(context).colorScheme.primary
                           : null,

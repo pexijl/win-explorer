@@ -114,7 +114,7 @@ class _HomePageState extends State<HomePage> {
                         setState(() {
                           _sliderWidth += dx;
                           _sliderWidth = _sliderWidth.clamp(
-                            250.0,
+                            100.0,
                             screenWidth - 250.0,
                           );
                         });
