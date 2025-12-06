@@ -23,6 +23,8 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
   String? _selectedNodeKey;
   late final TreeNode<AppDirectory> _tree;
 
+  AutoScrollController _scrollController = AutoScrollController();
+
   @override
   void initState() {
     super.initState();
@@ -49,8 +51,8 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
       if (!_tree.children.containsKey(key)) {
         final node = TreeNode<AppDirectory>(key: key, data: dir);
         node.expansionNotifier.value = false;
-        _tree.add(node);
         await _loadChildren(node);
+        _tree.add(node);
       }
     }
     if (mounted) setState(() {});
@@ -65,27 +67,22 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
         final subdirectories = await directory.getSubdirectories(recursive: false);
         for (var subDir in subdirectories) {
           final subNode = TreeNode<AppDirectory>(key: _generateKey(subDir.path), data: subDir);
+          
+          // 关键修复：在将 subNode 添加到父节点之前，先加载其子节点（孙节点）。
+          // 这样可以避免将节点添加到已在树中的父节点后，再添加子节点导致的自动展开问题。
+          try {
+            final subSubDirs = await subDir.getSubdirectories(recursive: false);
+            for (var subSubDir in subSubDirs) {
+              final grandChild = TreeNode<AppDirectory>(key: _generateKey(subSubDir.path), data: subSubDir);
+              grandChild.expansionNotifier.value = false;
+              subNode.add(grandChild);
+            }
+          } catch (e) {
+            // 忽略孙节点加载错误
+          }
+
           subNode.expansionNotifier.value = false;
           node.add(subNode);
-        }
-      }
-
-      for (var child in node.children.values) {
-        final childNode = child as TreeNode<AppDirectory>;
-        if (childNode.children.isEmpty) {
-          final childDir = childNode.data;
-          if (childDir != null) {
-            try {
-              final subSubDirs = await childDir.getSubdirectories(recursive: false);
-              for (var subSubDir in subSubDirs) {
-                final grandChild = TreeNode<AppDirectory>(key: _generateKey(subSubDir.path), data: subSubDir);
-                grandChild.expansionNotifier.value = false;
-                childNode.add(grandChild);
-              }
-            } catch (e) {
-              // Ignore errors
-            }
-          }
         }
       }
     } catch (e) {
@@ -99,7 +96,8 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
       slivers: [
         SliverTreeView.simple(
           tree: _tree,
-          showRootNode: false,
+          scrollController: _scrollController,
+          showRootNode: true,
           builder: (context, node) {
             return SidebarNodeItem(
               node: node,
@@ -127,6 +125,7 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
             await _loadChildren(node);
             setState(() {});
           },
+          expansionBehavior : ExpansionBehavior.none,
         ),
       ],
     );
