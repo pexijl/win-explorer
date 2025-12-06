@@ -90,19 +90,20 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
   }
 
   Widget _buildChildNodes(SidebarTreeNode node) {
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: node.children.length,
-      itemBuilder: (context, index) {
+    return Column(
+      children: node.children.map((child) {
         return Column(
           children: [
-            _buildParentNode(node.children[index]),
-            if (node.children[index].isExpanded)
-              _buildChildNodes(node.children[index]),
+            _buildParentNode(child),
+            AnimatedSize(
+              duration: const Duration(milliseconds: 300),
+              child: child.isExpanded
+                  ? _buildChildNodes(child)
+                  : const SizedBox.shrink(),
+            ),
           ],
         );
-      },
+      }).toList(),
     );
   }
 
@@ -116,8 +117,12 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
             return Column(
               children: [
                 _buildParentNode(root),
-                if (root.children.isNotEmpty && root.isExpanded)
-                  _buildChildNodes(root),
+                AnimatedSize(
+                  duration: const Duration(milliseconds: 300),
+                  child: root.isExpanded
+                      ? _buildChildNodes(root)
+                      : const SizedBox.shrink(),
+                ),
               ],
             );
           },
