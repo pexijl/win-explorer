@@ -17,7 +17,7 @@ class SidebarNodeItem extends StatefulWidget {
   final void Function(SidebarTreeNode) onToggleNode;
 
   /// 点击文件夹回调函数
-  final void Function(String) onSelectNode;
+  final void Function(AppDirectory) onSelectNode;
 
   const SidebarNodeItem({
     super.key,
@@ -39,7 +39,7 @@ class _SidebarNodeItemState extends State<SidebarNodeItem> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        widget.onSelectNode(widget.node.data.path);
+        widget.onSelectNode(widget.node.data);
       },
       child: Container(
         height: 40,
