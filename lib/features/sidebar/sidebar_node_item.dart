@@ -48,8 +48,12 @@ class _SidebarNodeItemState extends State<SidebarNodeItem> {
             bottom: BorderSide(color: Theme.of(context).colorScheme.outline),
           ),
           color: _isHovered
-              ? Theme.of(context).colorScheme.primaryContainer
-              : null,
+              ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.6)
+              : (widget.node.data.path == widget.path
+                    ? Theme.of(
+                        context,
+                      ).colorScheme.secondaryContainer.withOpacity(0.8)
+                    : null),
         ),
         child: MouseRegion(
           cursor: SystemMouseCursors.click,
@@ -78,7 +82,7 @@ class _SidebarNodeItemState extends State<SidebarNodeItem> {
                       )
                     : SizedBox(width: 24),
               ),
-              Icon(Icons.folder),
+              Icon(Icons.folder, color: Colors.amber),
               SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -87,6 +91,9 @@ class _SidebarNodeItemState extends State<SidebarNodeItem> {
                     fontWeight: widget.node.data.path == widget.path
                         ? FontWeight.bold
                         : FontWeight.normal,
+                    color: widget.node.data.path == widget.path
+                        ? Theme.of(context).colorScheme.primary
+                        : null,
                   ),
                   overflow: TextOverflow.clip,
                   maxLines: 1,
