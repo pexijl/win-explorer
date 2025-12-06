@@ -39,63 +39,65 @@ class _SidebarNodeItemState extends State<SidebarNodeItem> {
       },
       child: Container(
         height: 40,
-        decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(color: Theme.of(context).colorScheme.outline),
-          ),
-          color: _isHovered
-              ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.6)
-              : (widget.node.data.path == widget.path
-                    ? Theme.of(
-                        context,
-                      ).colorScheme.secondaryContainer.withOpacity(0.8)
-                    : null),
-        ),
+        decoration: BoxDecoration(color: Colors.white),
         child: MouseRegion(
           cursor: SystemMouseCursors.click,
           onEnter: (event) => setState(() => _isHovered = true),
           onExit: (event) => setState(() => _isHovered = false),
-          child: Row(
-            children: [
-              Padding(
-                padding: EdgeInsets.only(
-                  left: 8.0 + widget.node.level * 16.0,
-                  right: 8.0,
-                ),
-                child: widget.node.hasChildren
-                    ? IconButton(
-                        icon: Icon(
-                          widget.node.isExpanded
-                              ? Icons.expand_more
-                              : Icons.chevron_right,
-                          size: 24,
-                        ),
-                        onPressed: () {
-                          widget.onToggleNode(widget.node);
-                        },
-                        padding: EdgeInsets.zero,
-                        constraints: BoxConstraints(),
-                      )
-                    : SizedBox(width: 24),
-              ),
-              Icon(Icons.folder, color: Colors.amber),
-              SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  widget.node.data.name,
-                  style: TextStyle(
-                    fontWeight: widget.node.data.path == widget.path
-                        ? FontWeight.bold
-                        : FontWeight.normal,
-                    color: widget.node.data.path == widget.path
-                        ? Theme.of(context).colorScheme.primary
-                        : null,
+          child: Container(
+            decoration: BoxDecoration(
+              color: _isHovered
+                  ? Theme.of(
+                      context,
+                    ).colorScheme.primaryContainer.withOpacity(0.6)
+                  : (widget.node.data.path == widget.path
+                        ? Theme.of(
+                            context,
+                          ).colorScheme.secondaryContainer.withOpacity(0.8)
+                        : null),
+            ),
+            child: Row(
+              children: [
+                Padding(
+                  padding: EdgeInsets.only(
+                    left: 8.0 + widget.node.level * 16.0,
+                    right: 8.0,
                   ),
-                  overflow: TextOverflow.clip,
-                  maxLines: 1,
+                  child: widget.node.hasChildren
+                      ? IconButton(
+                          icon: Icon(
+                            widget.node.isExpanded
+                                ? Icons.expand_more
+                                : Icons.chevron_right,
+                            size: 24,
+                          ),
+                          onPressed: () {
+                            widget.onToggleNode(widget.node);
+                          },
+                          padding: EdgeInsets.zero,
+                          constraints: BoxConstraints(),
+                        )
+                      : SizedBox(width: 24),
                 ),
-              ),
-            ],
+                Icon(Icons.folder, color: Colors.amber),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    widget.node.data.name,
+                    style: TextStyle(
+                      fontWeight: widget.node.data.path == widget.path
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                      color: widget.node.data.path == widget.path
+                          ? Theme.of(context).colorScheme.primary
+                          : null,
+                    ),
+                    overflow: TextOverflow.clip,
+                    maxLines: 1,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
