@@ -81,19 +81,12 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
       physics: const NeverScrollableScrollPhysics(),
       itemCount: node.children.length,
       itemBuilder: (context, index) {
-        return SidebarNodeItem(
-          node: node.children[index],
-          path: _selectedNodePath,
-          onToggleNode: (node) {
-            print('收到:切换 ${node.data.name}');
-            if (!node.isExpanded) {
-              print('展开 ${node.data.name}');
-              _loadChildren(node);
-            }
-            node.isExpanded = !node.isExpanded;
-            setState(() {});
-          },
-          onSelectNode: (path) {},
+        return Column(
+          children: [
+            _buildParentNode(node.children[index]),
+            if (node.children[index].isExpanded)
+              _buildChildNodes(node.children[index]),
+          ],
         );
       },
     );
