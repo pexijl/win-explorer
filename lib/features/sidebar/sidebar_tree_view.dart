@@ -8,13 +8,11 @@ import 'package:win_explorer/features/sidebar/sidebar_tree_node.dart';
 class SidebarTreeView extends StatefulWidget {
   final List<AppDirectory> rootDirectories;
   final Function(AppDirectory)? onNodeSelected;
-  final double? scrollbarLeft;
 
   const SidebarTreeView({
     super.key,
     required this.rootDirectories,
     this.onNodeSelected,
-    this.scrollbarLeft,
   });
 
   @override
@@ -115,9 +113,7 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
     return RawScrollbar(
       scrollbarOrientation: ScrollbarOrientation.left,
       controller: _scrollController,
-      thickness: 8.0,
       thumbVisibility: true,
-      crossAxisMargin: widget.scrollbarLeft ?? 0,
       child: CustomScrollView(
         controller: _scrollController,
         slivers: [

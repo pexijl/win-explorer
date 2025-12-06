@@ -8,7 +8,6 @@ class Sidebar extends StatefulWidget {
   final double _right;
   final double _top;
   final double _bottom;
-  final double _width;
   final Function(AppDirectory) onDirectorySelected;
 
   const Sidebar({
@@ -17,13 +16,11 @@ class Sidebar extends StatefulWidget {
     required double right,
     required double top,
     required double bottom,
-    required double width,
     required this.onDirectorySelected,
   }) : _left = left,
        _right = right,
        _top = top,
-       _bottom = bottom,
-       _width = width;
+       _bottom = bottom;
   @override
   State<Sidebar> createState() => _SidebarState();
 }
@@ -61,7 +58,6 @@ class _SidebarState extends State<Sidebar> {
         child: SidebarTreeView(
           rootDirectories: rootDirectories,
           onNodeSelected: widget.onDirectorySelected,
-          scrollbarLeft: widget._width - 10,
         ),
       ),
     );

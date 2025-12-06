@@ -99,7 +99,6 @@ class _HomePageState extends State<HomePage> {
                       right: 0,
                       top: 0,
                       bottom: 0,
-                      width: _sliderWidth,
                       onDirectorySelected: _navigateTo,
                     ),
                     MainContent(
