@@ -50,7 +50,6 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
       final key = _generateKey(dir.path);
       if (!_tree.children.containsKey(key)) {
         final node = TreeNode<AppDirectory>(key: key, data: dir);
-        node.expansionNotifier.value = false;
         await _loadChildren(node);
         _tree.add(node);
       }
@@ -74,14 +73,12 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
             final subSubDirs = await subDir.getSubdirectories(recursive: false);
             for (var subSubDir in subSubDirs) {
               final grandChild = TreeNode<AppDirectory>(key: _generateKey(subSubDir.path), data: subSubDir);
-              grandChild.expansionNotifier.value = false;
               subNode.add(grandChild);
             }
           } catch (e) {
             // 忽略孙节点加载错误
           }
 
-          subNode.expansionNotifier.value = false;
           node.add(subNode);
         }
       }
