@@ -71,7 +71,6 @@ class _SidebarNodeItemState extends State<SidebarNodeItem> {
                           size: 24,
                         ),
                         onPressed: () {
-                          print('切换 ${widget.node.data.name}');
                           widget.onToggleNode(widget.node);
                         },
                         padding: EdgeInsets.zero,
