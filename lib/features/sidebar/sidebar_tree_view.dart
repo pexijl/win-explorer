@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:win_explorer/domain/entities/app_directory.dart';
 import 'package:win_explorer/features/sidebar/sidebar_node_item.dart';
 import 'package:win_explorer/features/sidebar/sidebar_tree_node.dart';
@@ -27,6 +28,7 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
   SidebarTreeNode root = SidebarTreeNode(
     data: AppDirectory(path: ' ', name: '此电脑'),
     level: 0,
+    hasChildren: true,
     children: [],
   );
 
@@ -42,6 +44,7 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
         await SidebarTreeNode.create(data: directory, level: root.level + 1),
       );
     }
+    print(root);
     setState(() {});
   }
 
@@ -56,14 +59,17 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
   }
 
   Widget _buildParentNode(SidebarTreeNode node) {
-    return SidebarNodeItem(
-      node: node,
-      path: _selectedNodePath,
-      onToggleNode: (node) {
-        node.isExpanded = !node.isExpanded;
-        setState(() {});
-      },
-      onSelectNode: (path) {},
+    return ChangeNotifierProvider.value(
+      value: node,
+      child: SidebarNodeItem(
+        node: node,
+        path: _selectedNodePath,
+        onToggleNode: (node) {
+          node.isExpanded = !node.isExpanded;
+          setState(() {});
+        },
+        onSelectNode: (path) {},
+      ),
     );
   }
 
@@ -73,11 +79,14 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
       physics: const NeverScrollableScrollPhysics(),
       itemCount: node.children?.length ?? 0,
       itemBuilder: (context, index) {
-        return SidebarNodeItem(
-          node: node.children![index],
-          path: _selectedNodePath,
-          onToggleNode: (node) {},
-          onSelectNode: (path) {},
+        return ChangeNotifierProvider.value(
+          value: node.children![index],
+          child: SidebarNodeItem(
+            node: node.children![index],
+            path: _selectedNodePath,
+            onToggleNode: (node) {},
+            onSelectNode: (path) {},
+          ),
         );
       },
     );
