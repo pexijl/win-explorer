@@ -51,41 +51,61 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
     for (var dir in widget.rootDirectories) {
       final key = _generateKey(dir.path);
       if (!_tree.children.containsKey(key)) {
-        final node = TreeNode<AppDirectory>(key: key, data: dir); 
+        final node = TreeNode<AppDirectory>(key: key, data: dir);
         await _loadChildren(node);
-        await _loadGrandChildren(node);
         _tree.add(node);
       }
     }
-    // if (mounted) setState(() {});
   }
 
+  /// Load children of a node
   Future<void> _loadChildren(TreeNode<AppDirectory> node) async {
     final directory = node.data;
     if (directory == null) return;
-    final subdirectories = await directory.getSubdirectories(recursive: false);
-    for (var subdir in subdirectories) {
-      final key = _generateKey(subdir.path);
-      if (!node.children.containsKey(key)) {
-        final childNode = TreeNode<AppDirectory>(key: key, data: subdir);
-        node.add(childNode);
+    try {
+      final subdirectories = await directory.getSubdirectories(
+        recursive: false,
+      );
+      for (var subdir in subdirectories) {
+        final key = _generateKey(subdir.path);
+        if (!node.children.containsKey(key)) {
+          final childNode = TreeNode<AppDirectory>(key: key, data: subdir);
+          node.add(childNode);
+        }
       }
+    } catch (e) {
+      debugPrint('Error loading children for ${directory.path}: $e');
     }
   }
 
-  Future<void> _loadGrandChildren(TreeNode<AppDirectory> node) async {
-    for (var child in node.childrenAsList) {
-      await _loadChildren(child as TreeNode<AppDirectory>);
-    }
-  }
-
+  /// Load children of node's grandchildren
   Future<void> _loadGreatGrandChildren(TreeNode<AppDirectory> node) async {
-    for (var child in node.childrenAsList) {
-      final childNode = child as TreeNode<AppDirectory>;
-      await _loadChildren(childNode);
-      for (var grandChild in childNode.childrenAsList) {
-        await _loadChildren(grandChild as TreeNode<AppDirectory>);
+    try {
+      // 确保node的子节点已加载
+      if (node.children.isEmpty) {
+        await _loadChildren(node);
       }
+      // 先加载所有子节点的子节点（孙节点）
+      for (var child in node.childrenAsList) {
+        final childNode = child as TreeNode<AppDirectory>;
+        if (childNode.children.isEmpty) {
+          await _loadChildren(childNode);
+        }
+      }
+      // 然后加载所有孙节点的子节点（曾孙节点）
+      for (var child in node.childrenAsList) {
+        final childNode = child as TreeNode<AppDirectory>;
+        for (var grandChild in childNode.childrenAsList) {
+          final grandChildNode = grandChild as TreeNode<AppDirectory>;
+          if (grandChildNode.children.isEmpty) {
+            await _loadChildren(grandChildNode);
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint(
+        'Error loading great-grandchildren for ${node.data?.path}: $e',
+      );
     }
   }
 
@@ -122,7 +142,6 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
           indentation: const Indentation(),
           onItemTap: (node) async {
             await _loadGreatGrandChildren(node);
-            // setState(() {});
           },
           expansionBehavior: ExpansionBehavior.none,
         ),

@@ -76,6 +76,8 @@ class _SidebarNodeItemState extends State<SidebarNodeItem> {
                           ? FontWeight.bold
                           : FontWeight.normal,
                     ),
+                    overflow: TextOverflow.clip,
+                    maxLines: 1,
                   ),
                 ),
               ],
