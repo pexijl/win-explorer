@@ -8,7 +8,7 @@ class SidebarTreeNode {
   final int level;
   bool isExpanded;
 
-  List<SidebarTreeNode>? children;
+  final List<SidebarTreeNode> children = [];
 
   bool hasChildren;
 
@@ -16,7 +16,6 @@ class SidebarTreeNode {
     required this.data,
     required this.level,
     this.isExpanded = false,
-    this.children,
     this.hasChildren = false,
   });
 
@@ -25,14 +24,12 @@ class SidebarTreeNode {
     required AppDirectory data,
     required int level,
     bool isExpanded = false,
-    List<SidebarTreeNode>? children,
   }) async {
     bool hasChildren = await data.hasSubdirectories();
     return SidebarTreeNode(
       data: data,
       level: level,
       isExpanded: isExpanded,
-      children: children,
       hasChildren: hasChildren,
     );
   }

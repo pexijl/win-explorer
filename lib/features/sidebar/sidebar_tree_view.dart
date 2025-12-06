@@ -28,7 +28,6 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
   SidebarTreeNode root = SidebarTreeNode(
     data: AppDirectory(path: ' ', name: '此电脑'),
     level: 0,
-    children: [],
     hasChildren: true,
   );
 
@@ -40,7 +39,7 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
 
   Future<void> _initTree() async {
     for (var directory in widget.rootDirectories) {
-      root.children!.add(
+      root.children.add(
         await SidebarTreeNode.create(data: directory, level: root.level + 1),
       );
     }
@@ -51,10 +50,12 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
     AppDirectory directory = node.data;
     List<AppDirectory> subDirectories = await directory.getSubdirectories();
     for (var subDirectory in subDirectories) {
-      node.children!.add(
+      node.children.add(
         await SidebarTreeNode.create(data: subDirectory, level: node.level + 1),
       );
     }
+    print("Loaded ${node.data.name} with ${node.children.length} children");
+    setState(() {});
   }
 
   Widget _buildParentNode(SidebarTreeNode node) {
@@ -62,6 +63,11 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
       node: node,
       path: _selectedNodePath,
       onToggleNode: (node) {
+        print('收到:切换 ${node.data.name}');
+        if (!node.isExpanded) {
+          print('展开 ${node.data.name}');
+          _loadChildren(node);
+        }
         node.isExpanded = !node.isExpanded;
         setState(() {});
       },
@@ -73,12 +79,20 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: node.children?.length ?? 0,
+      itemCount: node.children.length,
       itemBuilder: (context, index) {
         return SidebarNodeItem(
-          node: node.children![index],
+          node: node.children[index],
           path: _selectedNodePath,
-          onToggleNode: (node) {},
+          onToggleNode: (node) {
+            print('收到:切换 ${node.data.name}');
+            if (!node.isExpanded) {
+              print('展开 ${node.data.name}');
+              _loadChildren(node);
+            }
+            node.isExpanded = !node.isExpanded;
+            setState(() {});
+          },
           onSelectNode: (path) {},
         );
       },
@@ -95,9 +109,7 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
             return Column(
               children: [
                 _buildParentNode(root),
-                if (root.children != null &&
-                    root.children!.isNotEmpty &&
-                    root.isExpanded)
+                if (root.children.isNotEmpty && root.isExpanded)
                   _buildChildNodes(root),
               ],
             );
