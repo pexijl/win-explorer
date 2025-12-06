@@ -28,8 +28,8 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
   SidebarTreeNode root = SidebarTreeNode(
     data: AppDirectory(path: ' ', name: '此电脑'),
     level: 0,
-    hasChildren: true,
     children: [],
+    hasChildren: true,
   );
 
   @override
@@ -44,7 +44,6 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
         await SidebarTreeNode.create(data: directory, level: root.level + 1),
       );
     }
-    print(root);
     setState(() {});
   }
 
@@ -59,17 +58,14 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
   }
 
   Widget _buildParentNode(SidebarTreeNode node) {
-    return ChangeNotifierProvider.value(
-      value: node,
-      child: SidebarNodeItem(
-        node: node,
-        path: _selectedNodePath,
-        onToggleNode: (node) {
-          node.isExpanded = !node.isExpanded;
-          setState(() {});
-        },
-        onSelectNode: (path) {},
-      ),
+    return SidebarNodeItem(
+      node: node,
+      path: _selectedNodePath,
+      onToggleNode: (node) {
+        node.isExpanded = !node.isExpanded;
+        setState(() {});
+      },
+      onSelectNode: (path) {},
     );
   }
 
@@ -79,14 +75,11 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
       physics: const NeverScrollableScrollPhysics(),
       itemCount: node.children?.length ?? 0,
       itemBuilder: (context, index) {
-        return ChangeNotifierProvider.value(
-          value: node.children![index],
-          child: SidebarNodeItem(
-            node: node.children![index],
-            path: _selectedNodePath,
-            onToggleNode: (node) {},
-            onSelectNode: (path) {},
-          ),
+        return SidebarNodeItem(
+          node: node.children![index],
+          path: _selectedNodePath,
+          onToggleNode: (node) {},
+          onSelectNode: (path) {},
         );
       },
     );

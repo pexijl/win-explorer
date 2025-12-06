@@ -37,71 +37,66 @@ class _SidebarNodeItemState extends State<SidebarNodeItem> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<SidebarTreeNode>(
-      builder: (context, node, child) {
-        return GestureDetector(
-          onTap: () {
-            print('节点：${node.hasChildren}');
-            widget.onSelectNode(node.data.path);
-          },
-          child: Container(
-            height: 40,
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(color: Theme.of(context).colorScheme.outline),
-              ),
-              color: _isHovered
-                  ? Theme.of(context).colorScheme.primaryContainer
-                  : null,
-            ),
-            child: MouseRegion(
-              cursor: SystemMouseCursors.click,
-              onEnter: (event) => setState(() => _isHovered = true),
-              onExit: (event) => setState(() => _isHovered = false),
-              child: Row(
-                children: [
-                  Padding(
-                    padding: EdgeInsets.only(
-                      left: 8.0 + node.level * 16.0,
-                      right: 8.0,
-                    ),
-                    child: node.hasChildren
-                        ? IconButton(
-                            icon: Icon(
-                              node.isExpanded
-                                  ? Icons.expand_more
-                                  : Icons.chevron_right,
-                              size: 24,
-                            ),
-                            onPressed: () {
-                              print('切换 ${node.data.name}');
-                              widget.onToggleNode(node);
-                            },
-                            padding: EdgeInsets.zero,
-                            constraints: BoxConstraints(),
-                          )
-                        : SizedBox(width: 24),
-                  ),
-                  Icon(Icons.folder),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      node.data.name,
-                      style: TextStyle(
-                        fontWeight: node.data.path == widget.path
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                      ),
-                      overflow: TextOverflow.clip,
-                      maxLines: 1,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
+    return GestureDetector(
+      onTap: () {
+        widget.onSelectNode(widget.node.data.path);
       },
+      child: Container(
+        height: 40,
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(color: Theme.of(context).colorScheme.outline),
+          ),
+          color: _isHovered
+              ? Theme.of(context).colorScheme.primaryContainer
+              : null,
+        ),
+        child: MouseRegion(
+          cursor: SystemMouseCursors.click,
+          onEnter: (event) => setState(() => _isHovered = true),
+          onExit: (event) => setState(() => _isHovered = false),
+          child: Row(
+            children: [
+              Padding(
+                padding: EdgeInsets.only(
+                  left: 8.0 + widget.node.level * 16.0,
+                  right: 8.0,
+                ),
+                child: widget.node.hasChildren
+                    ? IconButton(
+                        icon: Icon(
+                          widget.node.isExpanded
+                              ? Icons.expand_more
+                              : Icons.chevron_right,
+                          size: 24,
+                        ),
+                        onPressed: () {
+                          print('切换 ${widget.node.data.name}');
+                          widget.onToggleNode(widget.node);
+                        },
+                        padding: EdgeInsets.zero,
+                        constraints: BoxConstraints(),
+                      )
+                    : SizedBox(width: 24),
+              ),
+              Icon(Icons.folder),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  widget.node.data.name,
+                  style: TextStyle(
+                    fontWeight: widget.node.data.path == widget.path
+                        ? FontWeight.bold
+                        : FontWeight.normal,
+                  ),
+                  overflow: TextOverflow.clip,
+                  maxLines: 1,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
