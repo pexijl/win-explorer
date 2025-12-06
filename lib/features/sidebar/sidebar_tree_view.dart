@@ -1,227 +1,133 @@
-import 'dart:core';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:flutter/foundation.dart';
 import 'package:win_explorer/domain/entities/app_directory.dart';
-import 'package:win_explorer/domain/entities/drive.dart';
+import 'package:win_explorer/features/sidebar/sidebar_node_item.dart';
 import 'package:win_explorer/features/sidebar/sidebar_tree_node.dart';
-import 'package:win_explorer/features/sidebar/sidebar_tree_node_title.dart';
 
-/// 树形结构侧边栏视图
 class SidebarTreeView extends StatefulWidget {
-  /// 盘符列表
-  final List<Drive> drives;
-
-  /// 节点选中回调
+  final List<AppDirectory> rootDirectories;
   final Function(AppDirectory)? onNodeSelected;
 
-  /// 构造函数
-  const SidebarTreeView({super.key, required this.drives, this.onNodeSelected});
+  const SidebarTreeView({
+    super.key,
+    required this.rootDirectories,
+    this.onNodeSelected,
+  });
 
   @override
   State<SidebarTreeView> createState() => _SidebarTreeViewState();
 }
 
 class _SidebarTreeViewState extends State<SidebarTreeView> {
-  /// 当前选中的节点
-  SidebarTreeNode? _selectedNode;
+  String? _selectedNodePath;
 
-  /// 树形结构
-  List<TreeSliverNode<SidebarTreeNode>> _tree = [];
+  final _scrollController = ScrollController();
 
-  /// 树形结构控制器
-  final TreeSliverController _treeController = TreeSliverController();
-
-  /// 记录对节点的订阅回调, 用于在节点变更时进行局部刷新
-  final Map<SidebarTreeNode, VoidCallback> _nodeListeners = {};
+  SidebarTreeNode root = SidebarTreeNode(
+    data: AppDirectory(path: ' ', name: '此电脑'),
+    level: 0,
+    hasChildren: true,
+  );
 
   @override
   void initState() {
     super.initState();
-    _buildTree(); // 构建树形结构
+    _initTree();
   }
 
-  @override
-  void didUpdateWidget(covariant SidebarTreeView oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (!listEquals(oldWidget.drives, widget.drives)) {
-      _buildTree();
-    }
-  }
-
-  /// 构建树形结构
-  Future<void> _buildTree() async {
-    // 构建根节点
-    final List<SidebarTreeNode> roots = [];
-    for (Drive drive in widget.drives) {
-      roots.add(
-        SidebarTreeNode(
-          label: drive.name,
-          appDirectory: AppDirectory(drive.mountPoint),
-        ),
+  Future<void> _initTree() async {
+    for (var directory in widget.rootDirectories) {
+      root.children.add(
+        await SidebarTreeNode.create(data: directory, level: root.level + 1),
       );
     }
-
-    setState(() {
-      _tree = _mapNodes(roots); // 映射为树形结构
-    });
-
-    _subscribeToTreeNodesFromTree(_tree);
+    setState(() {});
   }
 
-  /// 局部更新: 仅更新发生变化的节点对应的 `TreeSliverNode`
-  void _onNodeChanged(SidebarTreeNode changedNode) {
-    if (changedNode.isPlaceholder) return; // 跳过占位符节点
-    bool updated = false;
-
-    // 根据 content 创建一个新的 [TreeSliverNode]
-    TreeSliverNode<SidebarTreeNode> buildNodeFromContent(SidebarTreeNode content) {
-      List<TreeSliverNode<SidebarTreeNode>> childrenNodes = [];
-      if (content.children != null) {
-        childrenNodes = _mapNodes(content.children!);
-      } else if (content.hasChildren) {
-        childrenNodes = [
-            TreeSliverNode(
-              SidebarTreeNode(
-                label: 'Loading...',
-                appDirectory: AppDirectory(''),
-                isPlaceholder: true,
-              ),
+  Future<void> _loadChildren(SidebarTreeNode node) async {
+    try {
+      AppDirectory directory = node.data;
+      List<AppDirectory> subDirectories = await directory.getSubdirectories();
+      List<Future<SidebarTreeNode>> futures = subDirectories
+          .map(
+            (subDirectory) => SidebarTreeNode.create(
+              data: subDirectory,
+              level: node.level + 1,
             ),
-        ];
-      }
-      return TreeSliverNode(content, children: childrenNodes, expanded: content.isExpanded);
-    }
-
-    // 在节点列表中找到并替换对应 content 的节点
-    bool replaceNodeInList(List<TreeSliverNode<SidebarTreeNode>> nodes, SidebarTreeNode content, TreeSliverNode<SidebarTreeNode> newNode) {
-      for (var i = 0; i < nodes.length; i++) {
-        final n = nodes[i];
-        if (n.content == content) {
-          // 取消订阅旧子树
-          _unsubscribeTreeSliverNode(n);
-          // 替换
-          nodes[i] = newNode;
-          updated = true;
-          return true;
-        }
-        if (replaceNodeInList(n.children, content, newNode)) return true;
-      }
-      return false;
-    }
-
-    final newNode = buildNodeFromContent(changedNode);
-    replaceNodeInList(_tree, changedNode, newNode);
-    if (updated) {
-      // 订阅新的节点树
-      _subscribeToTreeNodesFromList([newNode]);
+          )
+          .toList();
+      List<SidebarTreeNode> children = await Future.wait(futures);
+      node.children.addAll(children);
+      node.hasLoadedChildren = true;
+      print("Loaded ${node.data.name} with ${node.children.length} children");
       setState(() {});
+    } catch (e) {
+      debugPrint(e.toString());
     }
   }
 
-  /// 取消订阅某个 `TreeSliverNode` 及其子树
-  void _unsubscribeTreeSliverNode(TreeSliverNode<SidebarTreeNode> node) {
-    final content = node.content;
-    if (_nodeListeners.containsKey(content)) {
-      content.removeListener(_nodeListeners[content]!);
-      _nodeListeners.remove(content);
-    }
-    for (final c in node.children) {
-      _unsubscribeTreeSliverNode(c);
-    }
+  Widget _buildParentNode(SidebarTreeNode node) {
+    return SidebarNodeItem(
+      node: node,
+      path: _selectedNodePath,
+      onToggleNode: (node) {
+        print('收到:切换 ${node.data.name}');
+        if (!node.isExpanded && !node.hasLoadedChildren) {
+          print('展开 ${node.data.name}');
+          _loadChildren(node);
+        }
+        node.isExpanded = !node.isExpanded;
+        setState(() {});
+      },
+      onSelectNode: (directory) {
+        print('收到:选中 ${node.data.name}');
+        _selectedNodePath = directory.path;
+        widget.onNodeSelected?.call(directory);
+        setState(() {});
+      },
+    );
   }
 
-  /// 将 `SidebarTreeNode` 列表映射为 `TreeSliverNode<SidebarTreeNode>` 列表
-  List<TreeSliverNode<SidebarTreeNode>> _mapNodes(List<SidebarTreeNode> nodes) {
-    return nodes.map((node) {
-      List<TreeSliverNode<SidebarTreeNode>> childrenNodes = [];
-      if (node.children != null) {
-        childrenNodes = _mapNodes(node.children!);
-      } else if (node.hasChildren) {
-        childrenNodes = [
-            TreeSliverNode(
-              SidebarTreeNode(
-                label: 'Loading...',
-                appDirectory: AppDirectory(''),
-                isPlaceholder: true,
-              ),
+  Widget _buildChildNodes(SidebarTreeNode node) {
+    return Column(
+      children: node.children.map((child) {
+        return Column(
+          children: [
+            _buildParentNode(child),
+            AnimatedSize(
+              duration: const Duration(milliseconds: 300),
+              child: child.isExpanded
+                  ? _buildChildNodes(child)
+                  : const SizedBox.shrink(),
             ),
-        ];
-      }
-
-      return TreeSliverNode(
-        node,
-        children: childrenNodes,
-        expanded: node.isExpanded,
-      );
-    }).toList();
-  }
-
-  /// 订阅给定节点以及其子节点的变更通知, 并记录回调以便取消订阅
-  void _subscribeToTreeNodesFromList(List<TreeSliverNode<SidebarTreeNode>> nodes) {
-    for (final node in nodes) {
-      final content = node.content;
-      // 对于占位符节点不订阅
-      if (content.isPlaceholder) continue;
-      if (!_nodeListeners.containsKey(content)) {
-        void listener() => _onNodeChanged(content);
-        content.addListener(listener);
-        _nodeListeners[content] = listener;
-      }
-      if (node.children.isNotEmpty) {
-        _subscribeToTreeNodesFromList(node.children);
-      }
-    }
-  }
-
-  /// 从现有树结构订阅所有节点
-  void _subscribeToTreeNodesFromTree(List<TreeSliverNode<SidebarTreeNode>> tree) {
-    _unsubscribeAll();
-    _subscribeToTreeNodesFromList(tree);
-  }
-
-  /// 取消订阅所有节点
-  void _unsubscribeAll() {
-    _nodeListeners.forEach((node, listener) {
-      node.removeListener(listener);
-    });
-    _nodeListeners.clear();
+          ],
+        );
+      }).toList(),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return CustomScrollView(
       slivers: [
-        TreeSliver<SidebarTreeNode>(
-          tree: _tree,
-          controller: _treeController,
-          treeNodeBuilder: (context, node, animation) {
-            final content = node.content as SidebarTreeNode;
-            return ChangeNotifierProvider<SidebarTreeNode>.value(
-              value: content,
-                child: SidebarTreeNodeTile(
-                node: content,
-                selectedNode: _selectedNode,
-                onNodeSelected: (n) {
-                  setState(() {
-                    _selectedNode = n;
-                  });
-                  widget.onNodeSelected?.call(n.appDirectory);
-                },
-                onNodeChanged: (changedNode) => _onNodeChanged(changedNode),
-              ),
+        SliverList.builder(
+          itemCount: 1,
+          itemBuilder: (context, index) {
+            return Column(
+              children: [
+                _buildParentNode(root),
+                AnimatedSize(
+                  duration: const Duration(milliseconds: 300),
+                  child: root.isExpanded
+                      ? _buildChildNodes(root)
+                      : const SizedBox.shrink(),
+                ),
+              ],
             );
           },
         ),
       ],
     );
-  }
-
-  @override
-  void dispose() {
-    _unsubscribeAll();
-    // TreeSliverController doesn't expose dispose API
-    super.dispose();
   }
 }

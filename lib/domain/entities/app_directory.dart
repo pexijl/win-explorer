@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path_utils;
 import 'package:win_explorer/domain/entities/app_file.dart';
 import 'package:win_explorer/domain/entities/app_file_system_entity.dart';
@@ -9,13 +10,14 @@ class AppDirectory {
   /// 底层 Directory 对象
   final Directory _directory;
 
-  AppDirectory._internal(this._directory);
+  AppDirectory._internal(this._directory, {String? name})
+    : name = name ?? path_utils.basename(_directory.path);
 
   // ========== 工厂构造函数 ==========
 
   /// 从路径创建 AppDirectory
-  factory AppDirectory(String path) {
-    return AppDirectory._internal(Directory(path));
+  factory AppDirectory({required String path, String? name}) {
+    return AppDirectory._internal(Directory(path), name: name);
   }
 
   /// 从原生 Directory 对象创建
@@ -40,13 +42,13 @@ class AppDirectory {
   String get path => _directory.path;
 
   /// 获取目录名称（路径的最后一部分）
-  String get name => path_utils.basename(path);
+  String name;
 
   /// 获取父目录路径
   String get parentPath => path_utils.dirname(path);
 
   /// 获取父目录的 AppDirectory 对象
-  AppDirectory get parent => AppDirectory(parentPath);
+  AppDirectory get parent => AppDirectory(path: parentPath);
 
   // ========== 状态检查 ==========
 
@@ -265,6 +267,20 @@ class AppDirectory {
     return results;
   }
 
+  /// 快速检查是否包含子目录
+  Future<bool> hasSubdirectories({bool recursive = false}) async {
+    try {
+      await for (final entity in _directory.list(recursive: recursive)) {
+        if (entity is Directory) {
+          return true;
+        }
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
+  }
+
   /// 获取子目录列表
   Future<List<AppDirectory>> getSubdirectories({bool recursive = false}) async {
     try {
@@ -306,7 +322,7 @@ class AppDirectory {
 
   /// 复制目录到新位置
   Future<AppDirectory> copyTo(String newPath, {bool recursive = true}) async {
-    final targetDir = AppDirectory(newPath);
+    final targetDir = AppDirectory(path: newPath);
     await targetDir.createIfNotExists(recursive: true);
 
     try {
@@ -342,7 +358,7 @@ class AppDirectory {
   /// 在目录中创建子目录
   Future<AppDirectory> createSubdirectory(String name) async {
     final subdirPath = path_utils.join(path, name);
-    final subdir = AppDirectory(subdirPath);
+    final subdir = AppDirectory(path: subdirPath);
     await subdir.createIfNotExists();
     return subdir;
   }
@@ -635,7 +651,9 @@ class AppDirectory {
   int get hashCode => path.hashCode;
 
   @override
-  String toString() => 'AppDirectory{path: $path}';
+  String toString() {
+    return 'AppDirectory{path: $path, name: $name}';
+  }
 }
 
 // ========== 辅助数据类 ==========
