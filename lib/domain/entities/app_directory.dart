@@ -35,8 +35,6 @@ class AppDirectory {
 
   // ========== 基础属性 ==========
 
-  final String id = UniqueKey().toString();
-
   /// 获取底层 Directory 对象
   Directory get directory => _directory;
 

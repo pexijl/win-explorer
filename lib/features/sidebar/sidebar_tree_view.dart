@@ -36,23 +36,23 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
     _initTree();
   }
 
-  void _initTree() {
+  Future<void> _initTree() async {
     for (var directory in widget.rootDirectories) {
       root.children!.add(
-        SidebarTreeNode(data: directory, level: root.level + 1),
+        await SidebarTreeNode.create(data: directory, level: root.level + 1),
       );
     }
+    setState(() {});
   }
 
   Future<void> _loadChildren(SidebarTreeNode node) async {
     AppDirectory directory = node.data;
     List<AppDirectory> subDirectories = await directory.getSubdirectories();
-    node.children = subDirectories
-        .map(
-          (directory) =>
-              SidebarTreeNode(data: directory, level: node.level + 1),
-        )
-        .toList();
+    for (var subDirectory in subDirectories) {
+      node.children!.add(
+        await SidebarTreeNode.create(data: subDirectory, level: node.level + 1),
+      );
+    }
   }
 
   Widget _buildParentNode(SidebarTreeNode node) {
