@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:animated_tree_view/animated_tree_view.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -56,7 +58,10 @@ class _SidebarNodeItemState extends State<SidebarNodeItem> {
           child: Row(
             children: [
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: 4),
+                padding: EdgeInsets.only(
+                  left: 8.0 + widget.node.level * 16.0,
+                  right: 8.0,
+                ),
                 child: widget.node.hasChildren
                     ? IconButton(
                         icon: Icon(
