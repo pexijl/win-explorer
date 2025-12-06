@@ -8,6 +8,7 @@ class SidebarTreeNode {
   final int level;
   bool isExpanded;
   bool hasChildren;
+  bool hasLoadedChildren;
   final List<SidebarTreeNode> children = [];
 
   SidebarTreeNode({
@@ -15,6 +16,7 @@ class SidebarTreeNode {
     required this.level,
     this.isExpanded = false,
     this.hasChildren = false,
+    this.hasLoadedChildren = false,
   });
 
   /// 异步创建 SidebarTreeNode，检查是否有子节点
@@ -22,6 +24,7 @@ class SidebarTreeNode {
     required AppDirectory data,
     required int level,
     bool isExpanded = false,
+    bool hasLoadedChildren = false,
   }) async {
     bool hasChildren = await data.hasSubdirectories();
     return SidebarTreeNode(
@@ -29,6 +32,7 @@ class SidebarTreeNode {
       level: level,
       isExpanded: isExpanded,
       hasChildren: hasChildren,
+      hasLoadedChildren: hasLoadedChildren,
     );
   }
 

@@ -47,15 +47,25 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
   }
 
   Future<void> _loadChildren(SidebarTreeNode node) async {
-    AppDirectory directory = node.data;
-    List<AppDirectory> subDirectories = await directory.getSubdirectories();
-    for (var subDirectory in subDirectories) {
-      node.children.add(
-        await SidebarTreeNode.create(data: subDirectory, level: node.level + 1),
-      );
+    try {
+      AppDirectory directory = node.data;
+      List<AppDirectory> subDirectories = await directory.getSubdirectories();
+      List<Future<SidebarTreeNode>> futures = subDirectories
+          .map(
+            (subDirectory) => SidebarTreeNode.create(
+              data: subDirectory,
+              level: node.level + 1,
+            ),
+          )
+          .toList();
+      List<SidebarTreeNode> children = await Future.wait(futures);
+      node.children.addAll(children);
+      node.hasLoadedChildren = true;
+      print("Loaded ${node.data.name} with ${node.children.length} children");
+      setState(() {});
+    } catch (e) {
+      debugPrint(e.toString());
     }
-    print("Loaded ${node.data.name} with ${node.children.length} children");
-    setState(() {});
   }
 
   Widget _buildParentNode(SidebarTreeNode node) {
@@ -64,7 +74,7 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
       path: _selectedNodePath,
       onToggleNode: (node) {
         print('收到:切换 ${node.data.name}');
-        if (!node.isExpanded) {
+        if (!node.isExpanded && !node.hasLoadedChildren) {
           print('展开 ${node.data.name}');
           _loadChildren(node);
         }
