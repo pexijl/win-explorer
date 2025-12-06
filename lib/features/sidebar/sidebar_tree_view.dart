@@ -8,11 +8,13 @@ import 'package:win_explorer/features/sidebar/sidebar_tree_node.dart';
 class SidebarTreeView extends StatefulWidget {
   final List<AppDirectory> rootDirectories;
   final Function(AppDirectory)? onNodeSelected;
+  final double? scrollbarLeft;
 
   const SidebarTreeView({
     super.key,
     required this.rootDirectories,
     this.onNodeSelected,
+    this.scrollbarLeft,
   });
 
   @override
@@ -110,26 +112,34 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
 
   @override
   Widget build(BuildContext context) {
-    return CustomScrollView(
-      slivers: [
-        SliverList.builder(
-          itemCount: 1,
-          itemBuilder: (context, index) {
-            return Column(
-              children: [
-                _buildParentNode(root),
-                AnimatedSize(
-                  duration: const Duration(milliseconds: 300),
-                  alignment: Alignment.topRight,
-                  child: root.isExpanded
-                      ? _buildChildNodes(root)
-                      : const SizedBox.shrink(),
-                ),
-              ],
-            );
-          },
-        ),
-      ],
+    return RawScrollbar(
+      scrollbarOrientation: ScrollbarOrientation.left,
+      controller: _scrollController,
+      thickness: 8.0,
+      thumbVisibility: true,
+      crossAxisMargin: widget.scrollbarLeft ?? 0,
+      child: CustomScrollView(
+        controller: _scrollController,
+        slivers: [
+          SliverList.builder(
+            itemCount: 1,
+            itemBuilder: (context, index) {
+              return Column(
+                children: [
+                  _buildParentNode(root),
+                  AnimatedSize(
+                    duration: const Duration(milliseconds: 300),
+                    alignment: Alignment.topRight,
+                    child: root.isExpanded
+                        ? _buildChildNodes(root)
+                        : const SizedBox.shrink(),
+                  ),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 }
