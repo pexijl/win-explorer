@@ -96,9 +96,10 @@ class _SidebarNodeItemState extends State<SidebarNodeItem> {
                   child: Text(
                     widget.node.data.name,
                     style: TextStyle(
+                      fontSize: 16,
                       fontWeight: widget.node.data.path == widget.path
-                          ? FontWeight.w700
-                          : FontWeight.w500,
+                          ? FontWeight.bold
+                          : FontWeight.normal,
                       color: widget.node.data.path == widget.path
                           ? Theme.of(context).colorScheme.primary
                           : null,
