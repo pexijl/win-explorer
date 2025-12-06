@@ -6,27 +6,23 @@ import 'package:win_explorer/features/sidebar/sidebar_tree_node.dart';
 
 class SidebarNodeItem extends StatefulWidget {
   /// 节点数据
-  final TreeNode<AppDirectory> node;
+  final SidebarTreeNode node;
 
   /// 选中节点的Key
-  final String? selectedNodeKey;
+  final String? path;
 
   /// 点击展开/折叠回调函数
-  final void Function(TreeNode<AppDirectory>) onToggleNode;
+  final void Function(SidebarTreeNode) onToggleNode;
 
   /// 点击文件夹回调函数
   final void Function(String) onSelectNode;
 
-  /// 动画控制器
-  final dynamic animation;
-
   const SidebarNodeItem({
     super.key,
     required this.node,
-    required this.selectedNodeKey,
+    required this.path,
     required this.onToggleNode,
     required this.onSelectNode,
-    this.animation,
   });
 
   @override
@@ -39,14 +35,9 @@ class _SidebarNodeItemState extends State<SidebarNodeItem> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.node.data == null) {
-      return const SizedBox.shrink();
-    }
     return GestureDetector(
       onTap: () {
-        if (widget.node.data != null) {
-          widget.onSelectNode(widget.node.key);
-        }
+        widget.onSelectNode(widget.node.data.path);
       },
       child: Container(
         height: 40,
@@ -58,30 +49,46 @@ class _SidebarNodeItemState extends State<SidebarNodeItem> {
               ? Theme.of(context).colorScheme.primaryContainer
               : null,
         ),
-        child: Padding(
-          padding: const EdgeInsets.only(left: 30),
-          child: MouseRegion(
-            cursor: SystemMouseCursors.click,
-            onEnter: (event) => setState(() => _isHovered = true),
-            onExit: (event) => setState(() => _isHovered = false),
-            child: Row(
-              children: [
-                Icon(Icons.folder),
-                SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    widget.node.data!.name,
-                    style: TextStyle(
-                      fontWeight: widget.node.key == widget.selectedNodeKey
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                    ),
-                    overflow: TextOverflow.clip,
-                    maxLines: 1,
+        child: MouseRegion(
+          cursor: SystemMouseCursors.click,
+          onEnter: (event) => setState(() => _isHovered = true),
+          onExit: (event) => setState(() => _isHovered = false),
+          child: Row(
+            children: [
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 4),
+                child: widget.node.hasChildren
+                    ? IconButton(
+                        icon: Icon(
+                          widget.node.isExpanded
+                              ? Icons.expand_more
+                              : Icons.chevron_right,
+                          size: 24,
+                        ),
+                        onPressed: () {
+                          print('切换 ${widget.node.data.name}');
+                          widget.onToggleNode(widget.node);
+                        },
+                        padding: EdgeInsets.zero,
+                        constraints: BoxConstraints(),
+                      )
+                    : SizedBox(width: 24),
+              ),
+              Icon(Icons.folder),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  widget.node.data.name,
+                  style: TextStyle(
+                    fontWeight: widget.node.data.path == widget.path
+                        ? FontWeight.bold
+                        : FontWeight.normal,
                   ),
+                  overflow: TextOverflow.clip,
+                  maxLines: 1,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
