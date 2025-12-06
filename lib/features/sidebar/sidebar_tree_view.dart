@@ -50,7 +50,33 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
       final key = _generateKey(dir.path);
       if (!_tree.children.containsKey(key)) {
         final node = TreeNode<AppDirectory>(key: key, data: dir);
-        await _loadChildren(node);
+        
+        // 直接实现加载两层：子节点和孙节点
+        try {
+          final subdirectories = await dir.getSubdirectories(recursive: false);
+          for (var subDir in subdirectories) {
+            final subNode = TreeNode<AppDirectory>(key: _generateKey(subDir.path), data: subDir);
+            
+            // 加载孙节点
+            try {
+              final subSubDirs = await subDir.getSubdirectories(recursive: false);
+              for (var subSubDir in subSubDirs) {
+                final grandChild = TreeNode<AppDirectory>(key: _generateKey(subSubDir.path), data: subSubDir);
+                grandChild.expansionNotifier.value = false;
+                subNode.add(grandChild);
+              }
+            } catch (e) {
+              // 忽略孙节点加载错误
+            }
+
+            subNode.expansionNotifier.value = false;
+            node.add(subNode);
+          }
+        } catch (e) {
+          debugPrint('Error loading children for ${dir.path}: $e');
+        }
+
+        node.expansionNotifier.value = false;
         _tree.add(node);
       }
     }
@@ -62,28 +88,29 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
     if (directory == null) return;
 
     try {
-      if (node.children.isEmpty) {
-        final subdirectories = await directory.getSubdirectories(recursive: false);
-        for (var subDir in subdirectories) {
-          final subNode = TreeNode<AppDirectory>(key: _generateKey(subDir.path), data: subDir);
-          
-          // 关键修复：在将 subNode 添加到父节点之前，先加载其子节点（孙节点）。
-          // 这样可以避免将节点添加到已在树中的父节点后，再添加子节点导致的自动展开问题。
-          try {
-            final subSubDirs = await subDir.getSubdirectories(recursive: false);
-            for (var subSubDir in subSubDirs) {
-              final grandChild = TreeNode<AppDirectory>(key: _generateKey(subSubDir.path), data: subSubDir);
-              subNode.add(grandChild);
+      // 仅加载node的孙节点：遍历现有子节点，为每个子节点加载其子节点（孙节点）
+      for (var child in node.children.values) {
+        final childNode = child as TreeNode<AppDirectory>;
+        if (childNode.children.isEmpty) {
+          final childDir = childNode.data;
+          if (childDir != null) {
+            try {
+              final subSubDirs = await childDir.getSubdirectories(recursive: false);
+              for (var subSubDir in subSubDirs) {
+                final grandChild = TreeNode<AppDirectory>(key: _generateKey(subSubDir.path), data: subSubDir);
+                grandChild.expansionNotifier.value = false;
+                childNode.add(grandChild);
+              }
+              // 确保子节点在添加孙节点后保持折叠状态
+              childNode.expansionNotifier.value = false;
+            } catch (e) {
+              // 忽略孙节点加载错误
             }
-          } catch (e) {
-            // 忽略孙节点加载错误
           }
-
-          node.add(subNode);
         }
       }
     } catch (e) {
-      debugPrint('Error loading children for ${directory.path}: $e');
+      debugPrint('Error loading grandchildren for ${directory.path}: $e');
     }
   }
 
@@ -120,7 +147,7 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
           indentation: const Indentation(),
           onItemTap: (node) async {
             await _loadChildren(node);
-            setState(() {});
+            // setState(() {});
           },
           expansionBehavior : ExpansionBehavior.none,
         ),
