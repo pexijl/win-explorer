@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:win_explorer/data/services/win32_drive_service.dart';
 import 'package:win_explorer/domain/entities/app_directory.dart';
-import 'package:win_explorer/domain/entities/drive.dart';
-import 'package:win_explorer/features/sidebar/sidebar_tree_node.dart';
 import 'package:win_explorer/features/sidebar/sidebar_tree_view.dart';
 
 class Sidebar extends StatefulWidget {

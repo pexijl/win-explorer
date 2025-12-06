@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:win_explorer/domain/entities/app_directory.dart';
 import 'package:win_explorer/features/sidebar/sidebar_node_item.dart';
 import 'package:win_explorer/features/sidebar/sidebar_tree_node.dart';

@@ -1,8 +1,4 @@
-import 'dart:ffi';
-
-import 'package:animated_tree_view/animated_tree_view.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:win_explorer/domain/entities/app_directory.dart';
 import 'package:win_explorer/features/sidebar/sidebar_tree_node.dart';
 
