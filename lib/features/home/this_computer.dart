@@ -10,6 +10,8 @@ class ThisComputer extends StatefulWidget {
 class _ThisComputerState extends State<ThisComputer> {
   @override
   Widget build(BuildContext context) {
-    return Container();
+    return Container(
+      child: Text('This Computer'),
+    );
   }
 }

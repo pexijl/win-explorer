@@ -107,6 +107,7 @@ class _HomePageState extends State<HomePage> {
                       top: 0,
                       bottom: 0,
                       directory: _currentDirectory,
+                      onDirectoryDoubleTap: _navigateTo,
                     ),
                     ResizeDivider(
                       left: _sliderWidth,
@@ -115,7 +116,7 @@ class _HomePageState extends State<HomePage> {
                           _sliderWidth += dx;
                           _sliderWidth = _sliderWidth.clamp(
                             100.0,
-                            screenWidth - 250.0,
+                            screenWidth - 150.0,
                           );
                         });
                       },

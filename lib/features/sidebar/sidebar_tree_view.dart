@@ -25,7 +25,7 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
   final _scrollController = ScrollController();
 
   SidebarTreeNode root = SidebarTreeNode(
-    data: AppDirectory(path: ' ', name: '此电脑'),
+    data: AppDirectory(path: '此电脑', name: '此电脑'),
     level: 0,
     hasChildren: true,
   );

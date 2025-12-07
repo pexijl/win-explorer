@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:win_explorer/domain/entities/app_directory.dart';
+import 'package:win_explorer/features/home/this_computer.dart';
+import 'folder_grid_view.dart';
 
 class MainContent extends StatefulWidget {
   final double _left;
@@ -8,6 +10,7 @@ class MainContent extends StatefulWidget {
   final double _top;
   final double _bottom;
   final AppDirectory? directory;
+  final Function(AppDirectory)? onDirectoryDoubleTap;
 
   const MainContent({
     super.key,
@@ -16,6 +19,7 @@ class MainContent extends StatefulWidget {
     required double top,
     required double bottom,
     this.directory,
+    this.onDirectoryDoubleTap,
   }) : _left = left,
        _right = right,
        _top = top,
@@ -95,56 +99,26 @@ class _MainContentState extends State<MainContent> {
   }
 
   Widget _buildGridView() {
+    if (widget.directory?.path == '此电脑') {
+      return const ThisComputer();
+    }
+
     if (_entities.isEmpty) {
       return const Center(child: Text('文件夹为空'));
     }
 
-    return GridView.builder(
-      padding: const EdgeInsets.all(10),
-      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: 100,
-        childAspectRatio: 0.8,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
-      ),
-      itemCount: _entities.length,
-      itemBuilder: (context, index) {
-        final entity = _entities[index];
-        final isDir = entity is Directory;
-        final name = entity.path.split(Platform.pathSeparator).last;
-
-        return GestureDetector(
-          onTap: () {
-            // Handle selection
-          },
-          onDoubleTap: () {
-            // Handle navigation if it's a directory
-          },
-          onSecondaryTapDown: (details) {
-            _showContextMenu(context, details.globalPosition, entity);
-          },
-          child: Tooltip(
-            message: name,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Icon(
-                  isDir ? Icons.folder : Icons.insert_drive_file,
-                  size: 48,
-                  color: isDir ? Colors.amber : Colors.blueGrey,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  name,
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-        );
+    return FolderGridView(
+      entities: _entities,
+      onItemTap: (entity) {},
+      onItemDoubleTap: (entity) {
+        if (entity is Directory) {
+          widget.onDirectoryDoubleTap?.call(
+            AppDirectory.fromFileSystemEntity(entity),
+          );
+        }
+      },
+      onItemSecondaryTapDown: (entity, details) {
+        _showContextMenu(context, details.globalPosition, entity);
       },
     );
   }
