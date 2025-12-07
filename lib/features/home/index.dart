@@ -24,6 +24,7 @@ class _HomePageState extends State<HomePage> {
   int _historyIndex = -1;
 
   void _navigateTo(AppDirectory directory) {
+    print('Navigating to ${directory}');
     if (_currentDirectory?.path == directory.path) return;
 
     setState(() {
@@ -113,7 +114,7 @@ class _HomePageState extends State<HomePage> {
                         setState(() {
                           _sliderWidth += dx;
                           _sliderWidth = _sliderWidth.clamp(
-                            250.0,
+                            100.0,
                             screenWidth - 250.0,
                           );
                         });

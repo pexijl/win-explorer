@@ -38,6 +38,7 @@ class _SidebarNodeItemState extends State<SidebarNodeItem> {
         widget.onSelectNode(widget.node.data);
       },
       child: Container(
+        padding: EdgeInsets.only(right: 14),
         height: 40,
         decoration: BoxDecoration(color: Colors.white),
         child: MouseRegion(
@@ -79,12 +80,23 @@ class _SidebarNodeItemState extends State<SidebarNodeItem> {
                         )
                       : SizedBox(width: 24),
                 ),
-                Icon(Icons.folder, color: Colors.amber),
+                Icon(
+                  Icons.folder,
+                  color: Colors.amber,
+                  shadows: [
+                    Shadow(
+                      color: Colors.black,
+                      offset: Offset(0, 0),
+                      blurRadius: 1,
+                    ),
+                  ],
+                ),
                 SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     widget.node.data.name,
                     style: TextStyle(
+                      fontSize: 16,
                       fontWeight: widget.node.data.path == widget.path
                           ? FontWeight.bold
                           : FontWeight.normal,

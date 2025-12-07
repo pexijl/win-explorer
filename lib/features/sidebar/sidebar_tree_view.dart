@@ -97,6 +97,7 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
             _buildParentNode(child),
             AnimatedSize(
               duration: const Duration(milliseconds: 300),
+              alignment: Alignment.topRight,
               child: child.isExpanded
                   ? _buildChildNodes(child)
                   : const SizedBox.shrink(),
@@ -119,6 +120,7 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
                 _buildParentNode(root),
                 AnimatedSize(
                   duration: const Duration(milliseconds: 300),
+                  alignment: Alignment.topRight,
                   child: root.isExpanded
                       ? _buildChildNodes(root)
                       : const SizedBox.shrink(),
