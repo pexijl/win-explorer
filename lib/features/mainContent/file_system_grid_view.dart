@@ -1,17 +1,19 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:win_explorer/features/mainContent/folder_grid_item.dart';
+import 'package:win_explorer/domain/entities/app_directory.dart';
+import 'package:win_explorer/domain/entities/app_file_system_entity.dart';
+import 'package:win_explorer/features/mainContent/file_system_entity_grid_item.dart';
 
-class FolderGridView extends StatefulWidget {
-  final List<FileSystemEntity> entities;
+class FileSystemGridView extends StatefulWidget {
+  final List<AppFileSystemEntity> entities;
   final int crossAxisCount;
   final double crossAxisSpacing;
   final double mainAxisSpacing;
-  final Function(FileSystemEntity)? onItemTap;
-  final Function(FileSystemEntity)? onItemDoubleTap;
-  final Function(FileSystemEntity, TapDownDetails)? onItemSecondaryTapDown;
+  final Function(AppFileSystemEntity)? onItemTap;
+  final Function(AppFileSystemEntity)? onItemDoubleTap;
+  final Function(AppFileSystemEntity, TapDownDetails)? onItemSecondaryTapDown;
 
-  const FolderGridView({
+  const FileSystemGridView({
     super.key,
     required this.entities,
     this.crossAxisCount = 3,
@@ -23,11 +25,11 @@ class FolderGridView extends StatefulWidget {
   });
 
   @override
-  State<FolderGridView> createState() => _FolderGridViewState();
+  State<FileSystemGridView> createState() => _FileSystemGridViewState();
 }
 
-class _FolderGridViewState extends State<FolderGridView> {
-  String? _selectedFolder;
+class _FileSystemGridViewState extends State<FileSystemGridView> {
+  String? _selectedItemName;
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -43,14 +45,13 @@ class _FolderGridViewState extends State<FolderGridView> {
           itemCount: widget.entities.length,
           itemBuilder: (context, index) {
             final entity = widget.entities[index];
-            final isDir = entity is Directory;
-            final name = entity.path.split(Platform.pathSeparator).last;
-            return FolderGridItem(
-              name: name,
-              icon: isDir ? Icons.folder : Icons.insert_drive_file,
-              isSelected: _selectedFolder == name,
-              onTap: (folderName) {
-                _selectedFolder = folderName;
+            return FileSystemEntityGridItem(
+              name: entity.name,
+              icon: entity.icon,
+              iconColor: entity.iconColor,
+              isSelected: _selectedItemName == entity.name,
+              onTap: (itemName) {
+                _selectedItemName = itemName;
                 setState(() {});
               },
               onDoubleTap: () {

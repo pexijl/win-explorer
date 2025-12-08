@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 
-class FolderGridItem extends StatefulWidget {
+class FileSystemEntityGridItem extends StatefulWidget {
   final String name;
   final IconData icon;
+  final MaterialColor? iconColor;
   final Function(String)? onTap;
   final VoidCallback? onDoubleTap;
   final Function(TapDownDetails)? onSecondaryTapDown;
   final Color? textColor;
   final bool? isSelected;
 
-  const FolderGridItem({
+  const FileSystemEntityGridItem({
     super.key,
     required this.name,
-    this.icon = Icons.folder,
+    this.icon = Icons.help_center,
+    this.iconColor = Colors.grey,
     this.onTap,
     this.onDoubleTap,
     this.onSecondaryTapDown,
@@ -22,10 +24,11 @@ class FolderGridItem extends StatefulWidget {
   });
 
   @override
-  State<FolderGridItem> createState() => _FolderGridItemState();
+  State<FileSystemEntityGridItem> createState() =>
+      _FileSystemEntityGridItemState();
 }
 
-class _FolderGridItemState extends State<FolderGridItem> {
+class _FileSystemEntityGridItemState extends State<FileSystemEntityGridItem> {
   /// 鼠标悬停
   bool _isHovered = false;
 
@@ -55,11 +58,7 @@ class _FolderGridItemState extends State<FolderGridItem> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                widget.icon,
-                size: 100.0,
-                color: widget.icon == Icons.folder ? Colors.amber : Colors.grey,
-              ),
+              Icon(widget.icon, size: 100.0, color: widget.iconColor),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 32.0),
                 child: Text(
@@ -86,5 +85,5 @@ class _FolderGridItemState extends State<FolderGridItem> {
 
 @Preview(name: 'FolderGridItem Preview')
 Widget folderGridItemPreview() {
-  return FolderGridItem(name: 'Folder Name');
+  return FileSystemEntityGridItem(name: 'Folder Name');
 }
