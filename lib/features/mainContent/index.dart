@@ -2,30 +2,32 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:win_explorer/domain/entities/app_directory.dart';
 import 'package:win_explorer/domain/entities/app_file_system_entity.dart';
+import 'package:win_explorer/features/home/index.dart';
 import 'package:win_explorer/features/home/this_computer.dart';
 import 'file_system_grid_view.dart';
 import 'file_system_list_view.dart';
 
 class MainContent extends StatefulWidget {
-  final double _left;
-  final double _right;
-  final double _top;
-  final double _bottom;
+  final double left;
+  final double right;
+  final double top;
+  final double bottom;
+  final ViewType viewType;
   final AppDirectory? directory;
   final Function(AppDirectory)? onDirectoryDoubleTap;
+  final Function(int)? onTotalEntitiesChanged;
 
   const MainContent({
     super.key,
-    required double left,
-    required double right,
-    required double top,
-    required double bottom,
+    required this.left,
+    required this.right,
+    required this.top,
+    required this.bottom,
+    required this.viewType,
     this.directory,
     this.onDirectoryDoubleTap,
-  }) : _left = left,
-       _right = right,
-       _top = top,
-       _bottom = bottom;
+    this.onTotalEntitiesChanged,
+  });
 
   @override
   State<MainContent> createState() => _MainContentState();
@@ -68,6 +70,8 @@ class _MainContentState extends State<MainContent> {
           _entities = entities;
           _isLoading = false;
         });
+        // 加载完成后调用回调
+        widget.onTotalEntitiesChanged?.call(entities.length);
       }
     } catch (e) {
       if (mounted) {
@@ -75,6 +79,8 @@ class _MainContentState extends State<MainContent> {
           _entities = [];
           _isLoading = false;
         });
+        // 出错时传递0
+        widget.onTotalEntitiesChanged?.call(0);
       }
     }
   }
@@ -82,10 +88,10 @@ class _MainContentState extends State<MainContent> {
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      left: widget._left,
-      right: widget._right,
-      top: widget._top,
-      bottom: widget._bottom,
+      left: widget.left,
+      right: widget.right,
+      top: widget.top,
+      bottom: widget.bottom,
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -95,7 +101,7 @@ class _MainContentState extends State<MainContent> {
             ? const Center(child: Text('请选择一个文件夹'))
             : _isLoading
             ? const Center(child: CircularProgressIndicator())
-            : _buildListView(),
+            : widget.viewType == ViewType.grid ? _buildGridView() : _buildListView(),
       ),
     );
   }

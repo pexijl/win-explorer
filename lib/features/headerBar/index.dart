@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:win_explorer/domain/entities/app_directory.dart';
 
 class HeaderBar extends StatefulWidget {
+  final double height;
   final AppDirectory? currentDirectory;
   final Function(String) onPathChanged;
   final VoidCallback? onBack;
@@ -13,6 +14,7 @@ class HeaderBar extends StatefulWidget {
 
   const HeaderBar({
     super.key,
+    required this.height,
     this.currentDirectory,
     required this.onPathChanged,
     this.onBack,
@@ -64,7 +66,7 @@ class _HeaderBarState extends State<HeaderBar> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 50,
+      height: widget.height,
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: Colors.white,

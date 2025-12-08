@@ -92,22 +92,12 @@ class _FileSystemListViewState extends State<FileSystemListView> {
     );
   }
 
-  Widget _listBottomBar() {
-    return Container(
-      height: 30,
-      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-      alignment: Alignment.centerLeft,
-      child: Text('共 ${widget.entities.length} 个项目'),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         _listHeader(),
         Expanded(child: _buildListView()),
-        _listBottomBar(),
       ],
     );
   }

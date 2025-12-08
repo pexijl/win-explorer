@@ -196,6 +196,12 @@ class AppDirectory {
     }
   }
 
+  /// 获取当前目录下的直接子项数量
+  Future<int> get childCount async {
+    final entities = await listEntities();
+    return entities.length;
+  }
+
   Future<List<AppFileSystemEntity>> listAppEntities({
     bool recursive = false,
     bool sortByType = true,
