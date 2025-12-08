@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path_utils;
+import 'package:win_explorer/core/utils/utils.dart';
 import 'package:win_explorer/domain/entities/app_file.dart';
 import 'package:win_explorer/domain/entities/app_file_system_entity.dart';
 
@@ -510,7 +511,7 @@ class AppDirectory {
   /// 获取人类可读的目录大小
   Future<String> getFormattedSize() async {
     final bytes = await size;
-    return _formatBytes(bytes);
+    return Utils.formatBytes(bytes);
   }
 
   /// 获取格式化的修改时间
@@ -578,21 +579,6 @@ class AppDirectory {
       // 处理权限错误
     }
     return entities;
-  }
-
-  String _formatBytes(int bytes) {
-    const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-    if (bytes == 0) return '0 B';
-
-    int unitIndex = 0;
-    double size = bytes.toDouble();
-
-    while (size >= 1024 && unitIndex < units.length - 1) {
-      size /= 1024;
-      unitIndex++;
-    }
-
-    return '${size.toStringAsFixed(unitIndex > 0 ? 1 : 0)} ${units[unitIndex]}';
   }
 
   String _formatTime(DateTime time) {

@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:win_explorer/domain/entities/app_file_system_entity.dart';
 
 class FileSystemEntityListItem extends StatefulWidget {
+  final double nameColumnWidth;
+  final double dateColumnWidth;
+  final double typeColumnWidth;
+  final double sizeColumnWidth;
   final AppFileSystemEntity entity;
   final Function(String)? onTap;
   final VoidCallback? onDoubleTap;
@@ -10,6 +14,10 @@ class FileSystemEntityListItem extends StatefulWidget {
 
   const FileSystemEntityListItem({
     super.key,
+    this.nameColumnWidth = 300,
+    this.dateColumnWidth = 150,
+    this.typeColumnWidth = 150,
+    this.sizeColumnWidth = 150,
     required this.entity,
     this.onTap,
     this.onDoubleTap,
@@ -49,69 +57,89 @@ class _FileSystemEntityListItemState extends State<FileSystemEntityListItem> {
       },
       // onDoubleTap: widget.onDoubleTap,
       onSecondaryTapDown: widget.onSecondaryTapDown,
-      child: MouseRegion(
-        onEnter: (_) => setState(() => _isHovered = true),
-        onExit: (_) => setState(() => _isHovered = false),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
-          decoration: BoxDecoration(
-            color: _isHovered
-                ? Theme.of(
-                    context,
-                  ).colorScheme.primaryContainer.withValues(alpha: 0.5)
-                : widget.isSelected == true
-                ? Theme.of(
-                    context,
-                  ).colorScheme.primaryContainer.withValues(alpha: 0.8)
-                : null,
-          ),
-          child: Row(
-            children: [
-              Container(
-                margin: const EdgeInsets.only(right: 16.0),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.red, width: 0),
-                ),
-                child: Icon(
-                  widget.entity.icon,
-                  color: widget.entity.iconColor,
-                  shadows: [
-                    Shadow(
-                      color: Colors.black,
-                      offset: Offset(0, 0),
-                      blurRadius: 1,
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                width: 300,
-                height: 24,
-                margin: const EdgeInsets.only(right: 16.0),
-                alignment: Alignment.centerLeft,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.blue, width: 0),
-                ),
-                child: Text(
-                  widget.entity.name,
-                  style: TextStyle(
-                    fontSize: 14.0,
-                    fontWeight: FontWeight.w500,
-                    color: Theme.of(context).textTheme.bodyLarge?.color,
+      child: Container(
+        alignment: Alignment.centerLeft,
+        child: MouseRegion(
+          onEnter: (_) => setState(() => _isHovered = true),
+          onExit: (_) => setState(() => _isHovered = false),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+            decoration: BoxDecoration(
+              color: _isHovered
+                  ? Theme.of(
+                      context,
+                    ).colorScheme.primaryContainer.withValues(alpha: 0.5)
+                  : widget.isSelected == true
+                  ? Theme.of(
+                      context,
+                    ).colorScheme.primaryContainer.withValues(alpha: 0.8)
+                  : null,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 30,
+                  margin: const EdgeInsets.only(right: 8.0),
+                  child: Icon(
+                    widget.entity.icon,
+                    color: widget.entity.iconColor,
+                    shadows: [
+                      Shadow(
+                        color: Colors.black,
+                        offset: Offset(0, 0),
+                        blurRadius: 1,
+                      ),
+                    ],
                   ),
-                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-              Container(
-                width: 150,
-                height: 24,
-                alignment: Alignment.centerLeft,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.green, width: 0),
+                Container(
+                  width: widget.nameColumnWidth,
+                  height: 24,
+                  margin: const EdgeInsets.only(right: 16.0),
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    widget.entity.name,
+                    style: TextStyle(
+                      fontSize: 14.0,
+                      fontWeight: FontWeight.w500,
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-                child: Text(widget.entity.getFormattedModifiedTime()),
-              ),
-            ],
+                Container(
+                  width: widget.dateColumnWidth,
+                  height: 24,
+                  margin: const EdgeInsets.only(right: 16.0),
+                  alignment: Alignment.centerLeft,
+                  child: FutureBuilder<String>(
+                    future: widget.entity.getFormattedModifiedTime(),
+                    builder: (context, asyncSnapshot) {
+                      return Text(asyncSnapshot.data ?? '');
+                    },
+                  ),
+                ),
+                Container(
+                  width: widget.typeColumnWidth,
+                  height: 24,
+                  margin: const EdgeInsets.only(right: 16.0),
+                  alignment: Alignment.centerLeft,
+                  child: Text(widget.entity.typeName),
+                ),
+                Container(
+                  width: widget.sizeColumnWidth,
+                  height: 24,
+                  alignment: Alignment.centerLeft,
+                  child: FutureBuilder<String>(
+                    future: widget.entity.getFormattedSize(),
+                    builder: (context, snapshot) {
+                      return Text(snapshot.data ?? '');
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

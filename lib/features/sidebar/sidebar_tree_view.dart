@@ -60,7 +60,6 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
       List<SidebarTreeNode> children = await Future.wait(futures);
       node.children.addAll(children);
       node.hasLoadedChildren = true;
-      print("Loaded ${node.data.name} with ${node.children.length} children");
       setState(() {});
     } catch (e) {
       debugPrint(e.toString());
@@ -72,16 +71,13 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
       node: node,
       path: _selectedNodePath,
       onToggleNode: (node) {
-        print('收到:切换 ${node.data.name}');
         if (!node.isExpanded && !node.hasLoadedChildren) {
-          print('展开 ${node.data.name}');
           _loadChildren(node);
         }
         node.isExpanded = !node.isExpanded;
         setState(() {});
       },
       onSelectNode: (directory) {
-        print('收到:选中 ${node.data.name}');
         _selectedNodePath = directory.path;
         widget.onNodeSelected?.call(directory);
         setState(() {});

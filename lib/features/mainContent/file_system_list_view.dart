@@ -24,13 +24,60 @@ class FileSystemListView extends StatefulWidget {
 
 class _FileSystemListViewState extends State<FileSystemListView> {
   String? _selectedItemName;
-  @override
-  Widget build(BuildContext context) {
+  final double _nameColumnWidth = 300;
+  final double _dateColumnWidth = 150;
+  final double _typeColumnWidth = 150;
+  final double _sizeColumnWidth = 150;
+
+  Widget _listHeader() {
+    return Container(
+      height: 30,
+      padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+      child: Row(
+        children: [
+          Container(width: 30, margin: const EdgeInsets.only(right: 8.0)),
+          Container(
+            width: _nameColumnWidth,
+            height: 24,
+            margin: const EdgeInsets.only(right: 16.0),
+            alignment: Alignment.centerLeft,
+            child: const Text('名称', style: TextStyle(color: Colors.black)),
+          ),
+          Container(
+            width: _dateColumnWidth,
+            height: 24,
+            margin: const EdgeInsets.only(right: 16.0),
+            alignment: Alignment.centerLeft,
+            child: const Text('修改日期'),
+          ),
+          Container(
+            width: _typeColumnWidth,
+            height: 24,
+            margin: const EdgeInsets.only(right: 16.0),
+            alignment: Alignment.centerLeft,
+            child: const Text('类型'),
+          ),
+          Container(
+            width: _sizeColumnWidth,
+            height: 24,
+            alignment: Alignment.centerLeft,
+            child: const Text('大小'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildListView() {
     return ListView.builder(
       itemCount: widget.entities.length,
       itemBuilder: (context, index) {
         final entity = widget.entities[index];
         return FileSystemEntityListItem(
+          nameColumnWidth: _nameColumnWidth,
+          dateColumnWidth: _dateColumnWidth,
+          typeColumnWidth: _typeColumnWidth,
+          sizeColumnWidth: _sizeColumnWidth,
           entity: entity,
           isSelected: _selectedItemName == entity.name,
           onTap: (itemName) {
@@ -42,6 +89,26 @@ class _FileSystemListViewState extends State<FileSystemListView> {
               widget.onItemSecondaryTapDown?.call(entity, details),
         );
       },
+    );
+  }
+
+  Widget _listBottomBar() {
+    return Container(
+      height: 30,
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      alignment: Alignment.centerLeft,
+      child: Text('共 ${widget.entities.length} 个项目'),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        _listHeader(),
+        Expanded(child: _buildListView()),
+        _listBottomBar(),
+      ],
     );
   }
 }

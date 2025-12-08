@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as path_utils;
+import 'package:win_explorer/core/utils/utils.dart';
 import 'package:win_explorer/domain/entities/app_directory.dart';
 import 'package:win_explorer/domain/entities/app_file.dart';
 
@@ -221,42 +222,24 @@ class AppFileSystemEntity {
   /// 获取实体大小
   Future<int> get size async {
     if (_cachedSize != null) return _cachedSize!;
-    if (_typedEntity is AppFile) {
-      _cachedSize = await (_typedEntity).size;
-    } else {
-      _cachedSize = await (_typedEntity as AppDirectory).size;
-    }
+    final stat = await _fileSystemEntity.stat();
+    _cachedSize = stat.size;
     return _cachedSize!;
   }
 
   /// 获取最后修改时间
-  DateTime? get modifiedTime {
+  Future<DateTime?> get modifiedTime async {
     if (_cachedModifiedTime != null) return _cachedModifiedTime;
-    if (isFile) {
-      _cachedModifiedTime = _fileSystemEntity.statSync().modified;
-    } else {
-      _cachedModifiedTime = (_fileSystemEntity as Directory)
-          .statSync()
-          .modified;
-    }
+    final stat = await _fileSystemEntity.stat();
+    _cachedModifiedTime = stat.modified;
     return _cachedModifiedTime;
-  }
-
-  /// 获取格式化的修改时间
-  String getFormattedModifiedTime() {
-    final dateTime = modifiedTime;
-    if (dateTime == null) return '未知时间';
-    return '${dateTime.year}/${dateTime.month}/${dateTime.day} ${dateTime.hour}:${dateTime.minute}';
   }
 
   /// 获取创建时间
   Future<DateTime?> get createdTime async {
     if (_cachedCreatedTime != null) return _cachedCreatedTime;
-    if (_typedEntity is AppFile) {
-      _cachedCreatedTime = await (_typedEntity).createdTime;
-    } else {
-      _cachedCreatedTime = await (_typedEntity as AppDirectory).createdTime;
-    }
+    final stat = await _fileSystemEntity.stat();
+    _cachedCreatedTime = stat.changed;
     return _cachedCreatedTime;
   }
 
@@ -276,6 +259,16 @@ class AppFileSystemEntity {
     } else {
       return Colors.grey;
     }
+  }
+
+  String get typeName {
+    if (isDirectory) {
+      return '文件夹';
+    }
+    if (extension.isEmpty) {
+      return '文件';
+    }
+    return '${extension.substring(1).toUpperCase()}文件';
   }
 
   // ========== 目录操作（仅目录有效） ==========
@@ -437,12 +430,26 @@ class AppFileSystemEntity {
 
   // ========== 工具方法 ==========
 
+  /// 获取格式化的修改时间
+  Future<String> getFormattedModifiedTime() async {
+    final dateTime = await modifiedTime;
+    if (dateTime == null) return '未知时间';
+    return '${dateTime.year}/${dateTime.month}/${dateTime.day} ${dateTime.hour}:${dateTime.minute}';
+  }
+
+  /// 获取格式化的创建时间
+  Future<String> getFormattedCreatedTime() async {
+    final dateTime = await createdTime;
+    if (dateTime == null) return '未知时间';
+    return '${dateTime.year}/${dateTime.month}/${dateTime.day} ${dateTime.hour}:${dateTime.minute}';
+  }
+
   /// 获取人类可读的大小
   Future<String> getFormattedSize() async {
-    if (_typedEntity is AppFile) {
-      return await (_typedEntity).getFormattedSize();
+    if (isFile) {
+      return Utils.formatBytes(await size);
     } else {
-      return await (_typedEntity as AppDirectory).getFormattedSize();
+      return '';
     }
   }
 
@@ -552,9 +559,6 @@ class AppFileSystemEntity {
     _cachedIsWritable = null;
     _cachedType = null;
   }
-
-  @override
-  int get hashCode => path.hashCode;
 
   @override
   String toString() {
