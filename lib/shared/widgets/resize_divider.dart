@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 /// 封装的拖拽条组件
 class ResizeDivider extends StatefulWidget {
   final double left;
+  final double bottom;
   final ValueChanged<double> onDrag;
   final ValueChanged<MouseCursor> onCursorChange;
 
   const ResizeDivider({
     super.key,
     required this.left,
+    required this.bottom,
     required this.onDrag,
     required this.onCursorChange,
   });
@@ -27,7 +29,7 @@ class _ResizeDividerState extends State<ResizeDivider> {
       left: widget.left,
       width: 10,
       top: 0,
-      bottom: 0,
+      bottom: widget.bottom,
       child: GestureDetector(
         behavior: HitTestBehavior.translucent,
         onPanStart: (details) {

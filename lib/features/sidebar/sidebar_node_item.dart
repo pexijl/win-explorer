@@ -50,11 +50,10 @@ class _SidebarNodeItemState extends State<SidebarNodeItem> {
               color: _isHovered
                   ? Theme.of(
                       context,
-                    ).colorScheme.primaryContainer.withOpacity(0.6)
+                    ).colorScheme.primaryContainer.withValues(alpha: 0.5)
                   : (widget.node.data.path == widget.path
-                        ? Theme.of(
-                            context,
-                          ).colorScheme.secondaryContainer.withOpacity(0.8)
+                        ? Theme.of(context).colorScheme.secondaryContainer
+                              .withValues(alpha: 0.8)
                         : null),
             ),
             child: Row(

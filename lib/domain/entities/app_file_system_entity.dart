@@ -1,14 +1,60 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:path/path.dart' as path_utils;
+import 'package:win_explorer/core/utils/utils.dart';
 import 'package:win_explorer/domain/entities/app_directory.dart';
 import 'package:win_explorer/domain/entities/app_file.dart';
 
+// ========== 自定义异常类 ==========
+
+/// 文件系统实体异常基类
+abstract class FileSystemEntityException implements Exception {
+  final String message;
+  final String? path;
+
+  FileSystemEntityException(this.message, [this.path]);
+
+  @override
+  String toString() => path != null ? '$message: $path' : message;
+}
+
+/// 不支持的实体类型异常
+class UnsupportedEntityTypeException extends FileSystemEntityException {
+  UnsupportedEntityTypeException(String type, [String? path])
+    : super('不支持的实体类型: $type', path);
+}
+
+/// 实体不存在异常
+class EntityNotFoundException extends FileSystemEntityException {
+  EntityNotFoundException([String? path]) : super('实体不存在', path);
+}
+
+/// 权限被拒绝异常
+class PermissionDeniedException extends FileSystemEntityException {
+  PermissionDeniedException(String operation, [String? path])
+    : super('权限被拒绝: $operation', path);
+}
+
+/// 无效操作异常
+class InvalidOperationException extends FileSystemEntityException {
+  InvalidOperationException(String operation, String reason, [String? path])
+    : super('无效操作 $operation: $reason', path);
+}
+
 /// 应用文件系统实体类（组合模式）
-/// 使用 AppFile 和 AppDirectory 共同实现，提供统一接口
 class AppFileSystemEntity {
   final FileSystemEntity _fileSystemEntity; // 底层实体
   late final dynamic _typedEntity; // 可以是 AppFile 或 AppDirectory
+
+  // ========== 缓存字段 ==========
+  int? _cachedSize;
+  DateTime? _cachedModifiedTime;
+  DateTime? _cachedCreatedTime;
+  bool? _cachedIsHidden;
+  bool? _cachedIsReadable;
+  bool? _cachedIsWritable;
+  FileSystemEntityType? _cachedType;
 
   AppFileSystemEntity._internal(this._fileSystemEntity) {
     // 根据类型初始化对应的实体
@@ -17,7 +63,10 @@ class AppFileSystemEntity {
     } else if (_fileSystemEntity is Directory) {
       _typedEntity = AppDirectory.fromDirectory(_fileSystemEntity);
     } else {
-      throw UnsupportedError('不支持的实体类型: ${_fileSystemEntity.runtimeType}');
+      throw UnsupportedEntityTypeException(
+        _fileSystemEntity.runtimeType.toString(),
+        _fileSystemEntity.path,
+      );
     }
   }
 
@@ -56,8 +105,7 @@ class AppFileSystemEntity {
   }
 
   // 从 FileSystemEntity 创建
-  factory AppFileSystemEntity.fromFileSystemEntity(
-      FileSystemEntity entity) {
+  factory AppFileSystemEntity.fromFileSystemEntity(FileSystemEntity entity) {
     return AppFileSystemEntity._internal(entity);
   }
 
@@ -65,19 +113,19 @@ class AppFileSystemEntity {
 
   /// 获取实体类型
   Future<FileSystemEntityType> get type async {
-    return await FileSystemEntity.type(path);
+    if (_cachedType != null) return _cachedType!;
+    _cachedType = await FileSystemEntity.type(path);
+    return _cachedType!;
   }
 
   /// 检查是否是文件
-  Future<bool> get isFile async => await type == FileSystemEntityType.file;
+  bool get isFile => _fileSystemEntity is File;
 
   /// 检查是否是目录
-  Future<bool> get isDirectory async =>
-      await type == FileSystemEntityType.directory;
+  bool get isDirectory => _fileSystemEntity is Directory;
 
   /// 转换为 AppFile（如果是文件）
-  AppFile? get asAppFile =>
-      _typedEntity is AppFile ? _typedEntity : null;
+  AppFile? get asAppFile => _typedEntity is AppFile ? _typedEntity : null;
 
   /// 转换为 AppDirectory（如果是目录）
   AppDirectory? get asAppDirectory =>
@@ -85,7 +133,7 @@ class AppFileSystemEntity {
 
   /// 安全转换为 AppFile
   Future<AppFile> toAppFile() async {
-    if (await isFile) {
+    if (isFile) {
       return _typedEntity as AppFile;
     }
     throw StateError('实体不是文件: $path');
@@ -93,7 +141,7 @@ class AppFileSystemEntity {
 
   /// 安全转换为 AppDirectory
   Future<AppDirectory> toAppDirectory() async {
-    if (await isDirectory) {
+    if (isDirectory) {
       return _typedEntity as AppDirectory;
     }
     throw StateError('实体不是目录: $path');
@@ -138,74 +186,96 @@ class AppFileSystemEntity {
 
   /// 检查是否可读
   Future<bool> get isReadable async {
+    if (_cachedIsReadable != null) return _cachedIsReadable!;
     if (_typedEntity is AppFile) {
-      return await (_typedEntity).isReadable;
+      _cachedIsReadable = await (_typedEntity).isReadable;
     } else {
-      return await (_typedEntity as AppDirectory).isReadable;
+      _cachedIsReadable = await (_typedEntity as AppDirectory).isReadable;
     }
+    return _cachedIsReadable!;
   }
 
   /// 检查是否可写
   Future<bool> get isWritable async {
+    if (_cachedIsWritable != null) return _cachedIsWritable!;
     if (_typedEntity is AppFile) {
-      return await (_typedEntity).isWritable;
+      _cachedIsWritable = await (_typedEntity).isWritable;
     } else {
-      return await (_typedEntity as AppDirectory).isWritable;
+      _cachedIsWritable = await (_typedEntity as AppDirectory).isWritable;
     }
+    return _cachedIsWritable!;
   }
 
   /// 检查是否隐藏
   Future<bool> get isHidden async {
+    if (_cachedIsHidden != null) return _cachedIsHidden!;
     if (_typedEntity is AppFile) {
-      return await (_typedEntity).isHidden;
+      _cachedIsHidden = await (_typedEntity).isHidden;
     } else {
-      return await (_typedEntity as AppDirectory).isHidden;
+      _cachedIsHidden = await (_typedEntity as AppDirectory).isHidden;
     }
+    return _cachedIsHidden!;
   }
 
   // ========== 文件信息（委托给具体实现） ==========
 
   /// 获取实体大小
   Future<int> get size async {
-    if (_typedEntity is AppFile) {
-      return await (_typedEntity).size;
-    } else {
-      return await (_typedEntity as AppDirectory).size;
-    }
+    if (_cachedSize != null) return _cachedSize!;
+    final stat = await _fileSystemEntity.stat();
+    _cachedSize = stat.size;
+    return _cachedSize!;
   }
 
   /// 获取最后修改时间
   Future<DateTime?> get modifiedTime async {
-    if (_typedEntity is AppFile) {
-      return await (_typedEntity).modifiedTime;
-    } else {
-      return await (_typedEntity as AppDirectory).modifiedTime;
-    }
+    if (_cachedModifiedTime != null) return _cachedModifiedTime;
+    final stat = await _fileSystemEntity.stat();
+    _cachedModifiedTime = stat.modified;
+    return _cachedModifiedTime;
   }
 
   /// 获取创建时间
   Future<DateTime?> get createdTime async {
-    if (_typedEntity is AppFile) {
-      return await (_typedEntity).createdTime;
-    } else {
-      return await (_typedEntity as AppDirectory).createdTime;
-    }
+    if (_cachedCreatedTime != null) return _cachedCreatedTime;
+    final stat = await _fileSystemEntity.stat();
+    _cachedCreatedTime = stat.changed;
+    return _cachedCreatedTime;
   }
 
   /// 获取显示用的图标类型
-  Future<String> get iconType async {
-    if (_typedEntity is AppFile) {
-      return (_typedEntity).iconType;
+  IconData get icon {
+    if (isDirectory) {
+      return Icons.folder;
     } else {
-      return 'folder'; // 目录固定返回文件夹图标
+      return Icons.insert_drive_file;
     }
+  }
+
+  /// 获取显示用的图标颜色
+  MaterialColor get iconColor {
+    if (isDirectory) {
+      return Colors.amber;
+    } else {
+      return Colors.grey;
+    }
+  }
+
+  String get typeName {
+    if (isDirectory) {
+      return '文件夹';
+    }
+    if (extension.isEmpty) {
+      return '文件';
+    }
+    return '${extension.substring(1).toUpperCase()}文件';
   }
 
   // ========== 目录操作（仅目录有效） ==========
 
   /// 获取目录的子项
   Future<List<AppFileSystemEntity>> getChildren() async {
-    if (await isDirectory) {
+    if (isDirectory) {
       final directory = _typedEntity as AppDirectory;
       final entities = await directory.listEntities();
 
@@ -221,7 +291,7 @@ class AppFileSystemEntity {
 
   /// 获取目录下的所有文件
   Future<List<AppFileSystemEntity>> getAllFiles({bool recursive = true}) async {
-    if (await isDirectory) {
+    if (isDirectory) {
       final directory = _typedEntity as AppDirectory;
       final files = await directory.getAllFiles(recursive: recursive);
 
@@ -235,7 +305,7 @@ class AppFileSystemEntity {
     String pattern, {
     bool recursive = true,
   }) async {
-    if (await isDirectory) {
+    if (isDirectory) {
       final directory = _typedEntity as AppDirectory;
       final files = await directory.searchFiles(pattern, recursive: recursive);
 
@@ -250,7 +320,7 @@ class AppFileSystemEntity {
   Future<List<AppFileSystemEntity>> getSubdirectories({
     bool recursive = false,
   }) async {
-    if (await isDirectory) {
+    if (isDirectory) {
       final directory = _typedEntity as AppDirectory;
       final subDirs = await directory.getSubdirectories(recursive: recursive);
 
@@ -265,7 +335,7 @@ class AppFileSystemEntity {
 
   /// 读取文件内容
   Future<String> readAsString({Encoding encoding = utf8}) async {
-    if (await isFile) {
+    if (isFile) {
       final file = _typedEntity as AppFile;
       return await file.readAsString(encoding: encoding);
     }
@@ -279,7 +349,7 @@ class AppFileSystemEntity {
     Encoding encoding = utf8,
     bool flush = false,
   }) async {
-    if (await isFile) {
+    if (isFile) {
       final file = _typedEntity as AppFile;
       return await file.writeAsString(
         content,
@@ -293,7 +363,7 @@ class AppFileSystemEntity {
 
   /// 读取文件字节
   Future<List<int>> readAsBytes() async {
-    if (await isFile) {
+    if (isFile) {
       final file = _typedEntity as AppFile;
       return await file.readAsBytes();
     }
@@ -302,7 +372,7 @@ class AppFileSystemEntity {
 
   /// 按行读取文件
   Future<List<String>> readAsLines({Encoding encoding = utf8}) async {
-    if (await isFile) {
+    if (isFile) {
       final file = _typedEntity as AppFile;
       return await file.readAsLines(encoding: encoding);
     }
@@ -350,7 +420,7 @@ class AppFileSystemEntity {
 
   /// 创建目录（如果不存在）
   Future<AppFileSystemEntity> createIfNotExists({bool recursive = true}) async {
-    if (await isDirectory) {
+    if (isDirectory) {
       final directory = _typedEntity as AppDirectory;
       await directory.createIfNotExists(recursive: recursive);
       return this;
@@ -360,29 +430,33 @@ class AppFileSystemEntity {
 
   // ========== 工具方法 ==========
 
-  /// 获取人类可读的大小
-  Future<String> getFormattedSize() async {
-    if (_typedEntity is AppFile) {
-      return await (_typedEntity).getFormattedSize();
-    } else {
-      return await (_typedEntity as AppDirectory).getFormattedSize();
-    }
-  }
-
   /// 获取格式化的修改时间
   Future<String> getFormattedModifiedTime() async {
-    if (_typedEntity is AppFile) {
-      return await (_typedEntity).getFormattedModifiedTime();
+    final dateTime = await modifiedTime;
+    if (dateTime == null) return '未知时间';
+    return '${dateTime.year}/${dateTime.month}/${dateTime.day} ${dateTime.hour}:${dateTime.minute}';
+  }
+
+  /// 获取格式化的创建时间
+  Future<String> getFormattedCreatedTime() async {
+    final dateTime = await createdTime;
+    if (dateTime == null) return '未知时间';
+    return '${dateTime.year}/${dateTime.month}/${dateTime.day} ${dateTime.hour}:${dateTime.minute}';
+  }
+
+  /// 获取人类可读的大小
+  Future<String> getFormattedSize() async {
+    if (isFile) {
+      return Utils.formatBytes(await size);
     } else {
-      return await (_typedEntity as AppDirectory).getFormattedModifiedTime();
+      return '';
     }
   }
 
   /// 获取实体统计信息
   Future<EntityStats> getStats() async {
-    if (await isFile) {
+    if (isFile) {
       final file = _typedEntity as AppFile;
-      final info = await file.info;
       return EntityStats(
         path: path,
         name: name,
@@ -431,7 +505,7 @@ class AppFileSystemEntity {
 
   /// 获取目录树形结构
   Future<EntityTree> getTree({int maxDepth = 3}) async {
-    if (await isDirectory) {
+    if (isDirectory) {
       final directory = _typedEntity as AppDirectory;
       final dirTree = await directory.getTree(maxDepth: maxDepth);
 
@@ -459,7 +533,7 @@ class AppFileSystemEntity {
 
   /// 检查实体是否包含指定文本（仅文件有效）
   Future<bool> containsText(String text, {Encoding encoding = utf8}) async {
-    if (await isFile) {
+    if (isFile) {
       final file = _typedEntity as AppFile;
       return await file.containsText(text, encoding: encoding);
     }
@@ -468,22 +542,23 @@ class AppFileSystemEntity {
 
   /// 获取实体哈希值（仅文件有效）
   Future<String> get md5 async {
-    if (await isFile) {
+    if (isFile) {
       final file = _typedEntity as AppFile;
       return await file.md5;
     }
     return '';
   }
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is AppFileSystemEntity &&
-          runtimeType == other.runtimeType &&
-          path == other.path;
-
-  @override
-  int get hashCode => path.hashCode;
+  /// 清除缓存（当实体发生变化时调用）
+  void clearCache() {
+    _cachedSize = null;
+    _cachedModifiedTime = null;
+    _cachedCreatedTime = null;
+    _cachedIsHidden = null;
+    _cachedIsReadable = null;
+    _cachedIsWritable = null;
+    _cachedType = null;
+  }
 
   @override
   String toString() {
@@ -586,7 +661,7 @@ class EntityTree {
   });
 
   Future<void> printTree({String indent = ''}) async {
-    final isDir = await entity.isDirectory;
+    final isDir = entity.isDirectory;
     final icon = isDir ? '📁' : '📄';
     print('$indent$icon ${entity.name}');
 

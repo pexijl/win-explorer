@@ -1,20 +1,17 @@
-import 'package:flutter/material.dart';
+class Utils {
+  /// 格式化字节数为可读字符串
+  static String formatBytes(int bytes) {
+    const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+    if (bytes == 0) return '0 B';
 
-final Map<int, Color> colorMapper = {
-  0: Colors.white,
-  1: Colors.blueGrey[50]!,
-  2: Colors.blueGrey[100]!,
-  3: Colors.blueGrey[200]!,
-  4: Colors.blueGrey[300]!,
-  5: Colors.blueGrey[400]!,
-  6: Colors.blueGrey[500]!,
-  7: Colors.blueGrey[600]!,
-  8: Colors.blueGrey[700]!,
-  9: Colors.blueGrey[800]!,
-  10: Colors.blueGrey[900]!,
-};
+    int unitIndex = 0;
+    double size = bytes.toDouble();
 
-extension ColorUtil on Color {
-  Color byLuminance() =>
-      computeLuminance() > 0.4 ? Colors.black87 : Colors.white;
+    while (size >= 1024 && unitIndex < units.length - 1) {
+      size /= 1024;
+      unitIndex++;
+    }
+
+    return '${size.toStringAsFixed(unitIndex > 0 ? 1 : 0)} ${units[unitIndex]}';
+  }
 }

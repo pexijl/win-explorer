@@ -1,32 +1,40 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:win_explorer/domain/entities/app_directory.dart';
+import 'package:win_explorer/domain/entities/app_file_system_entity.dart';
+import 'package:win_explorer/features/home/index.dart';
+import 'package:win_explorer/features/home/this_computer.dart';
+import 'file_system_grid_view.dart';
+import 'file_system_list_view.dart';
 
 class MainContent extends StatefulWidget {
-  final double _left;
-  final double _right;
-  final double _top;
-  final double _bottom;
+  final double left;
+  final double right;
+  final double top;
+  final double bottom;
+  final ViewType viewType;
   final AppDirectory? directory;
+  final Function(AppDirectory)? onDirectoryDoubleTap;
+  final Function(int)? onTotalEntitiesChanged;
 
   const MainContent({
     super.key,
-    required double left,
-    required double right,
-    required double top,
-    required double bottom,
+    required this.left,
+    required this.right,
+    required this.top,
+    required this.bottom,
+    required this.viewType,
     this.directory,
-  }) : _left = left,
-       _right = right,
-       _top = top,
-       _bottom = bottom;
+    this.onDirectoryDoubleTap,
+    this.onTotalEntitiesChanged,
+  });
 
   @override
   State<MainContent> createState() => _MainContentState();
 }
 
 class _MainContentState extends State<MainContent> {
-  List<FileSystemEntity> _entities = [];
+  List<AppFileSystemEntity> _entities = [];
   bool _isLoading = false;
 
   @override
@@ -56,12 +64,14 @@ class _MainContentState extends State<MainContent> {
     });
 
     try {
-      final entities = await widget.directory!.listEntities();
+      final entities = await widget.directory!.listAppEntities();
       if (mounted) {
         setState(() {
           _entities = entities;
           _isLoading = false;
         });
+        // 加载完成后调用回调
+        widget.onTotalEntitiesChanged?.call(entities.length);
       }
     } catch (e) {
       if (mounted) {
@@ -69,6 +79,8 @@ class _MainContentState extends State<MainContent> {
           _entities = [];
           _isLoading = false;
         });
+        // 出错时传递0
+        widget.onTotalEntitiesChanged?.call(0);
       }
     }
   }
@@ -76,10 +88,10 @@ class _MainContentState extends State<MainContent> {
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      left: widget._left,
-      right: widget._right,
-      top: widget._top,
-      bottom: widget._bottom,
+      left: widget.left,
+      right: widget.right,
+      top: widget.top,
+      bottom: widget.bottom,
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -89,62 +101,53 @@ class _MainContentState extends State<MainContent> {
             ? const Center(child: Text('请选择一个文件夹'))
             : _isLoading
             ? const Center(child: CircularProgressIndicator())
-            : _buildGridView(),
+            : widget.viewType == ViewType.grid ? _buildGridView() : _buildListView(),
       ),
     );
   }
 
   Widget _buildGridView() {
+    if (widget.directory?.path == '此电脑') {
+      return const ThisComputer();
+    }
+
     if (_entities.isEmpty) {
       return const Center(child: Text('文件夹为空'));
     }
 
-    return GridView.builder(
-      padding: const EdgeInsets.all(10),
-      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: 100,
-        childAspectRatio: 0.8,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
-      ),
-      itemCount: _entities.length,
-      itemBuilder: (context, index) {
-        final entity = _entities[index];
-        final isDir = entity is Directory;
-        final name = entity.path.split(Platform.pathSeparator).last;
+    return FileSystemGridView(
+      entities: _entities,
+      onItemTap: (entity) {},
+      onItemDoubleTap: (entity) {
+        if (entity.isDirectory) {
+          widget.onDirectoryDoubleTap?.call(entity.asAppDirectory!);
+        }
+      },
+      onItemSecondaryTapDown: (entity, details) {
+        _showContextMenu(context, details.globalPosition, entity);
+      },
+    );
+  }
 
-        return GestureDetector(
-          onTap: () {
-            // Handle selection
-          },
-          onDoubleTap: () {
-            // Handle navigation if it's a directory
-          },
-          onSecondaryTapDown: (details) {
-            _showContextMenu(context, details.globalPosition, entity);
-          },
-          child: Tooltip(
-            message: name,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Icon(
-                  isDir ? Icons.folder : Icons.insert_drive_file,
-                  size: 48,
-                  color: isDir ? Colors.amber : Colors.blueGrey,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  name,
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-        );
+  Widget _buildListView() {
+    if (widget.directory?.path == '此电脑') {
+      return const ThisComputer();
+    }
+
+    if (_entities.isEmpty) {
+      return const Center(child: Text('文件夹为空'));
+    }
+
+    return FileSystemListView(
+      entities: _entities,
+      onItemTap: (entity) {},
+      onItemDoubleTap: (entity) {
+        if (entity.isDirectory) {
+          widget.onDirectoryDoubleTap?.call(entity.asAppDirectory!);
+        }
+      },
+      onItemSecondaryTapDown: (entity, details) {
+        _showContextMenu(context, details.globalPosition, entity);
       },
     );
   }
@@ -152,9 +155,9 @@ class _MainContentState extends State<MainContent> {
   void _showContextMenu(
     BuildContext context,
     Offset position,
-    FileSystemEntity entity,
+    AppFileSystemEntity entity,
   ) {
-    final isDir = entity is Directory;
+    final isDir = entity is AppDirectory;
     showMenu(
       context: context,
       position: RelativeRect.fromLTRB(
@@ -164,14 +167,15 @@ class _MainContentState extends State<MainContent> {
         position.dy + 1,
       ),
       items: [
-        PopupMenuItem(child: Text(isDir ? '打开文件夹' : '打开文件'), value: 'open'),
-        PopupMenuItem(child: Text('属性'), value: 'properties'),
+        PopupMenuItem(value: 'open', child: Text(isDir ? '打开文件夹' : '打开文件')),
+        PopupMenuItem(value: 'properties', child: Text('属性')),
       ],
     ).then((value) {
       if (value == 'open') {
-        // TODO: Implement open action
+        print('Open ${entity.path}');
       } else if (value == 'properties') {
         // TODO: Implement properties action
+        print('Properties ${entity.path}');
       }
     });
   }

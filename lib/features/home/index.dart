@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:win_explorer/core/constants/global_constants.dart';
 import 'package:win_explorer/domain/entities/app_directory.dart';
+import 'package:win_explorer/features/bottomBar/index.dart';
 import 'package:win_explorer/shared/widgets/resize_divider.dart';
 import 'package:win_explorer/features/headerBar/index.dart';
 import 'package:win_explorer/features/mainContent/index.dart';
 import 'package:win_explorer/features/sidebar/index.dart';
+
+/// 视图类型枚举
+enum ViewType { grid, list, bank }
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -18,6 +22,8 @@ class _HomePageState extends State<HomePage> {
   double get screenWidth => MediaQuery.sizeOf(context).width;
   double get screenHeight => MediaQuery.sizeOf(context).height;
   MouseCursor _currentCursor = SystemMouseCursors.basic;
+  int _currentEntityCount = 0;
+  ViewType _currentViewType = ViewType.list;
 
   AppDirectory? _currentDirectory;
   final List<AppDirectory> _history = [];
@@ -80,6 +86,7 @@ class _HomePageState extends State<HomePage> {
             direction: Axis.vertical,
             children: [
               HeaderBar(
+                height: 50,
                 currentDirectory: _currentDirectory,
                 onPathChanged: _handlePathChanged,
                 onBack: _goBack,
@@ -98,24 +105,30 @@ class _HomePageState extends State<HomePage> {
                       left: 0,
                       right: screenWidth - _sliderWidth,
                       top: 0,
-                      bottom: 0,
+                      bottom: 30,
                       onDirectorySelected: _navigateTo,
                     ),
                     MainContent(
                       left: _sliderWidth,
                       right: 0,
                       top: 0,
-                      bottom: 0,
+                      bottom: 30,
+                      viewType: _currentViewType,
                       directory: _currentDirectory,
+                      onDirectoryDoubleTap: _navigateTo,
+                      onTotalEntitiesChanged: (total) {
+                        setState(() => _currentEntityCount = total);
+                      },
                     ),
                     ResizeDivider(
                       left: _sliderWidth,
+                      bottom: 30,
                       onDrag: (dx) {
                         setState(() {
                           _sliderWidth += dx;
                           _sliderWidth = _sliderWidth.clamp(
                             100.0,
-                            screenWidth - 250.0,
+                            screenWidth - 150.0,
                           );
                         });
                       },
@@ -124,6 +137,17 @@ class _HomePageState extends State<HomePage> {
                           _currentCursor = cursor;
                         });
                       },
+                    ),
+                    BottomBar(
+                      left: 0,
+                      right: 0,
+                      top: screenHeight - 80,
+                      bottom: 0,
+                      viewType: _currentViewType,
+                      onViewTypeChanged: (newType) {
+                        setState(() => _currentViewType = newType);
+                      },
+                      entityCount: _currentEntityCount,
                     ),
                   ],
                 ),
