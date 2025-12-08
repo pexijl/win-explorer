@@ -32,13 +32,28 @@ class _FileSystemEntityGridItemState extends State<FileSystemEntityGridItem> {
   /// 鼠标悬停
   bool _isHovered = false;
 
+  /// 双击检测变量
+  int _lastTap = 0;
+  int _tapCount = 0;
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        widget.onTap?.call(widget.name);
+        int now = DateTime.now().millisecondsSinceEpoch;
+        if (now - _lastTap < 300) {
+          _tapCount++;
+          if (_tapCount >= 2) {
+            widget.onDoubleTap?.call();
+            _tapCount = 0; // 重置计数
+          }
+        } else {
+          _tapCount = 1;
+          widget.onTap?.call(widget.name);
+        }
+        _lastTap = now;
       },
-      onDoubleTap: widget.onDoubleTap,
+      // onDoubleTap: widget.onDoubleTap,
       onSecondaryTapDown: widget.onSecondaryTapDown,
       child: MouseRegion(
         onEnter: (_) => setState(() => _isHovered = true),
