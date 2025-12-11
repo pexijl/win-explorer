@@ -407,24 +407,37 @@ class AppFileSystemEntity {
     if (isDirectory) {
       final directory = _typedEntity as AppDirectory;
       final newDirectory = await directory.rename(newPath);
-      return AppFileSystemEntity.fromAppDirectory(newDirectory);
+      return AppFileSystemEntity.fromDirectory(newDirectory.directory);
     } else {
-      final file = _typedEntity;
+      final file = _typedEntity as AppFile;
       final newFile = await file.rename(newPath);
-      return AppFileSystemEntity.fromAppFile(newFile);
+      return AppFileSystemEntity.fromFile(newFile.file);
     }
   }
 
   /// 复制实体
   Future<AppFileSystemEntity> copyTo(String newPath) async {
-    if (_typedEntity is AppFile) {
-      final file = _typedEntity;
-      final newFile = await file.copy(newPath);
-      return AppFileSystemEntity.fromFile(newFile as File);
-    } else {
+    if (isDirectory) {
       final directory = _typedEntity as AppDirectory;
       final newDir = await directory.copyTo(newPath);
       return AppFileSystemEntity.fromDirectory(newDir.directory);
+    } else {
+      final file = _typedEntity as AppFile;
+      final newFile = await file.copy(newPath);
+      return AppFileSystemEntity.fromFile(newFile.file);
+    }
+  }
+
+  /// 移动实体
+  Future<AppFileSystemEntity> moveTo(String newPath) async {
+    if (isDirectory) {
+      final directory = _typedEntity as AppDirectory;
+      final newDir = await directory.move(newPath);
+      return AppFileSystemEntity.fromDirectory(newDir.directory);
+    } else {
+      final file = _typedEntity as AppFile;
+      final newFile = await file.move(newPath);
+      return AppFileSystemEntity.fromFile(newFile.file);
     }
   }
 
@@ -587,6 +600,15 @@ class AppFileSystemEntity {
     _cachedIsWritable = null;
     _cachedType = null;
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is AppFileSystemEntity && path == other.path;
+  }
+
+  @override
+  int get hashCode => path.hashCode;
 
   @override
   String toString() {

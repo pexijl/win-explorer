@@ -1,7 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:path/path.dart' as path_util;
 import 'package:win_explorer/domain/entities/app_directory.dart';
 import 'package:win_explorer/domain/entities/app_file_system_entity.dart';
+import 'package:win_explorer/domain/entities/clipboard_manager.dart';
 import 'package:win_explorer/features/home/index.dart';
 import 'package:win_explorer/features/home/this_computer.dart';
 import 'package:win_explorer/features/explorer/presentation/dialogs/entity_property_dialog.dart';
@@ -10,9 +12,8 @@ import 'package:win_explorer/features/explorer/presentation/dialogs/delete_dialo
 import 'package:win_explorer/features/explorer/presentation/dialogs/create_file_dialog.dart';
 import 'package:win_explorer/features/explorer/presentation/dialogs/rename_entity_dialog.dart';
 import 'package:win_explorer/features/mainContent/file_system_context_menu.dart';
-import 'file_system_grid_view.dart';
-import 'file_system_list_view.dart';
-import 'package:path/path.dart' as p;
+import 'package:win_explorer/features/mainContent/file_system_grid_view.dart';
+import 'package:win_explorer/features/mainContent/file_system_list_view.dart';
 
 class MainContent extends StatefulWidget {
   final double left;
@@ -106,7 +107,6 @@ class _MainContentState extends State<MainContent> {
       bottom: widget.bottom,
       child: GestureDetector(
         onSecondaryTapDown: (details) {
-          // TODO: 实现右键空白区域菜单
           FileSystemContextMenu.showForDirectory(
             context: context,
             position: details.globalPosition,
@@ -123,7 +123,7 @@ class _MainContentState extends State<MainContent> {
                   await refresh();
                   break;
                 case ContextMenuAction.paste:
-                  await _pasteEntity();
+                  await _pasteEntities();
                   break;
                 case ContextMenuAction.properties:
                   await _showProperties();
@@ -181,8 +181,17 @@ class _MainContentState extends State<MainContent> {
               case ContextMenuAction.properties:
                 await _showEntityProperties(entity);
                 break;
-              case ContextMenuAction.refresh:
-                await refresh();
+              case ContextMenuAction.copy:
+                await _copyEntity(entity);
+                break;
+              case ContextMenuAction.cut:
+                await _cutEntity(entity);
+                break;
+              case ContextMenuAction.rename:
+                await _renameEntity(entity);
+                break;
+              case ContextMenuAction.delete:
+                await _deleteEntity(entity);
                 break;
               default:
                 break;
@@ -223,11 +232,11 @@ class _MainContentState extends State<MainContent> {
               case ContextMenuAction.properties:
                 await _showEntityProperties(entity);
                 break;
-              case ContextMenuAction.cut:
-                await _cutEntity(entity);
-                break;
               case ContextMenuAction.copy:
                 await _copyEntity(entity);
+                break;
+              case ContextMenuAction.cut:
+                await _cutEntity(entity);
                 break;
               case ContextMenuAction.rename:
                 await _renameEntity(entity);
@@ -261,18 +270,65 @@ class _MainContentState extends State<MainContent> {
     );
   }
 
-  /// 剪切文件
-  Future<void> _cutEntity(AppFileSystemEntity entity) async {
-    if (entity.isDirectory) {
-      widget.onDirectoryDoubleTap?.call(entity.asAppDirectory!);
-    } else {
-      Process.run('explorer', ['/select,', entity.path]);
+  /// 复制文件
+  Future<void> _copyEntity(AppFileSystemEntity entity) async {
+    ClipboardManager().copy(entity);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          width: 300,
+          duration: Duration(seconds: 1),
+          behavior: SnackBarBehavior.floating,
+          content: Text('已复制 ${entity.name}'),
+        ),
+      );
     }
   }
 
-  /// 复制文件
-  Future<void> _copyEntity(AppFileSystemEntity entity) async {
-    // TODO: 待实现
+  /// 剪切文件
+  Future<void> _cutEntity(AppFileSystemEntity entity) async {
+    ClipboardManager().cut(entity);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          width: 300,
+          duration: Duration(seconds: 1),
+          behavior: SnackBarBehavior.floating,
+          content: Text('已剪切 ${entity.name}'),
+        ),
+      );
+    }
+  }
+
+  Future<void> _pasteEntities() async {
+    if (widget.directory == null || !ClipboardManager().hasItems) return;
+
+    try {
+      await ClipboardManager().pasteTo(widget.directory!);
+      await _loadContents();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            width: 300,
+            duration: Duration(seconds: 1),
+            behavior: SnackBarBehavior.floating,
+            content: Text('粘贴完成'),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            width: 300,
+            duration: Duration(seconds: 1),
+            behavior: SnackBarBehavior.floating,
+            content: Text('粘贴失败: $e'),
+          ),
+        );
+      }
+    }
   }
 
   /// 删除文件
@@ -298,10 +354,33 @@ class _MainContentState extends State<MainContent> {
       builder: (BuildContext context) => RenameEntityDialog(entity: entity),
     );
     if (newName != null && newName.isNotEmpty && newName != entity.name) {
-      final parentPath = p.dirname(entity.path);
-      final newPath = '$parentPath${Platform.pathSeparator}$newName';
-      await entity.rename(newPath);
-      await _loadContents();
+      try {
+        final parentPath = path_util.dirname(entity.path);
+        final newPath = '$parentPath${Platform.pathSeparator}$newName';
+        await entity.rename(newPath);
+        await _loadContents();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              width: 300,
+              duration: Duration(seconds: 1),
+              behavior: SnackBarBehavior.floating,
+              content: Text('重命名成功'),
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              width: 300,
+              duration: Duration(seconds: 1),
+              behavior: SnackBarBehavior.floating,
+              content: Text('重命名失败: $e'),
+            ),
+          );
+        }
+      }
     }
   }
 
@@ -345,10 +424,7 @@ class _MainContentState extends State<MainContent> {
     );
   }
 
-  Future<void> _pasteEntity() async {
-    // TODO: 粘贴文件
-  }
-
+  /// 显示当前目录属性
   Future<void> _showProperties() async {
     await showDialog(
       context: context,

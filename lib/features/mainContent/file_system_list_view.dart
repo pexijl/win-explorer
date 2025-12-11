@@ -1,6 +1,4 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:win_explorer/domain/entities/app_directory.dart';
 import 'package:win_explorer/domain/entities/app_file_system_entity.dart';
 import 'package:win_explorer/features/mainContent/file_system_entity_list_item.dart';
 
@@ -77,9 +75,6 @@ class _FileSystemListViewState extends State<FileSystemListView> {
         _selectedItemName = null;
         setState(() {});
       },
-      // onSecondaryTapDown: (details) {
-      //   // TODO: implement secondary tap
-      // },
       child: ListView.builder(
         itemCount: widget.entities.length,
         itemBuilder: (context, index) {

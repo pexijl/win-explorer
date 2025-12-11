@@ -1,6 +1,5 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';
-import 'package:path/path.dart' as path_utils;
+import 'package:path/path.dart' as path_util;
 import 'package:win_explorer/core/utils/utils.dart';
 import 'package:win_explorer/domain/entities/app_file.dart';
 import 'package:win_explorer/domain/entities/app_file_system_entity.dart';
@@ -12,7 +11,7 @@ class AppDirectory {
   final Directory _directory;
 
   AppDirectory._internal(this._directory, {String? name})
-    : name = name ?? path_utils.basename(_directory.path);
+    : name = name ?? path_util.basename(_directory.path);
 
   // ========== 工厂构造函数 ==========
 
@@ -46,7 +45,7 @@ class AppDirectory {
   String name;
 
   /// 获取父目录路径
-  String get parentPath => path_utils.dirname(path);
+  String get parentPath => path_util.dirname(path);
 
   /// 获取父目录的 AppDirectory 对象
   AppDirectory get parent => AppDirectory(path: parentPath);
@@ -90,7 +89,7 @@ class AppDirectory {
 
   /// 检查目录是否隐藏（以点开头）
   Future<bool> get isHidden async {
-    final baseName = path_utils.basename(_directory.path);
+    final baseName = path_util.basename(_directory.path);
     return baseName.startsWith('.');
   }
 
@@ -184,8 +183,8 @@ class AppDirectory {
           }
 
           // 同类型按名称排序（不区分大小写）
-          final aName = path_utils.basename(a.path).toLowerCase();
-          final bName = path_utils.basename(b.path).toLowerCase();
+          final aName = path_util.basename(a.path).toLowerCase();
+          final bName = path_util.basename(b.path).toLowerCase();
           return aName.compareTo(bName);
         });
       }
@@ -335,8 +334,8 @@ class AppDirectory {
     try {
       final entities = await _getAllEntitiesRecursive();
       for (final entity in entities) {
-        final relativePath = path_utils.relative(entity.path, from: path);
-        final targetPath = path_utils.join(newPath, relativePath);
+        final relativePath = path_util.relative(entity.path, from: path);
+        final targetPath = path_util.join(newPath, relativePath);
 
         if (entity is File) {
           final appFile = AppFile.fromFile(entity);
@@ -362,9 +361,19 @@ class AppDirectory {
     }
   }
 
+  /// 移动文件夹到新位置
+  Future<AppDirectory> move(String newPath) async {
+    try {
+      final newDir = await _directory.rename(newPath);
+      return AppDirectory.fromDirectory(newDir);
+    } catch (e) {
+      throw Exception('移动文件失败: $e');
+    }
+  }
+
   /// 在目录中创建子目录
   Future<AppDirectory> createSubdirectory(String name) async {
-    final subdirPath = path_utils.join(path, name);
+    final subdirPath = path_util.join(path, name);
     final subdir = AppDirectory(path: subdirPath);
     await subdir.createIfNotExists();
     return subdir;
@@ -372,7 +381,7 @@ class AppDirectory {
 
   /// 在目录中创建文件（返回 AppFile 对象）
   Future<AppFile> createFile(String name, {String content = ''}) async {
-    final filePath = path_utils.join(path, name);
+    final filePath = path_util.join(path, name);
     final appFile = AppFile(filePath);
 
     if (content.isNotEmpty) {
@@ -387,7 +396,7 @@ class AppDirectory {
 
   /// 在目录中创建文件（返回原生 File 对象）
   Future<File> createRawFile(String name, {String content = ''}) async {
-    final filePath = path_utils.join(path, name);
+    final filePath = path_util.join(path, name);
     final file = File(filePath);
     if (content.isNotEmpty) {
       await file.writeAsString(content);

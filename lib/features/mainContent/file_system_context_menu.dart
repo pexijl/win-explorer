@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:win_explorer/domain/entities/app_directory.dart';
 import 'package:win_explorer/domain/entities/app_file_system_entity.dart';
+import 'package:win_explorer/domain/entities/clipboard_manager.dart';
 
 /// 右键菜单动作枚举
 enum ContextMenuAction {
@@ -63,8 +64,8 @@ class FileSystemContextMenu {
           value: ContextMenuAction.properties,
           child: const Text('属性'),
         ),
-        PopupMenuItem(value: ContextMenuAction.cut, child: const Text('剪切')),
         PopupMenuItem(value: ContextMenuAction.copy, child: const Text('复制')),
+        PopupMenuItem(value: ContextMenuAction.cut, child: const Text('剪切')),
         PopupMenuItem(value: ContextMenuAction.paste, child: const Text('粘贴')),
         PopupMenuItem(
           value: ContextMenuAction.rename,
@@ -112,7 +113,11 @@ class FileSystemContextMenu {
           value: ContextMenuAction.refresh,
           child: const Text('刷新'),
         ),
-        PopupMenuItem(value: ContextMenuAction.paste, child: const Text('粘贴')),
+        if (ClipboardManager().hasItems)
+          PopupMenuItem(
+            value: ContextMenuAction.paste,
+            child: Text(ClipboardManager().isCutMode ? '移动到此处' : '粘贴'),
+          ),
         PopupMenuItem(
           value: ContextMenuAction.properties,
           child: const Text('属性'),
