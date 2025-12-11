@@ -80,8 +80,12 @@ class _SidebarNodeItemState extends State<SidebarNodeItem> {
                       : SizedBox(width: 24),
                 ),
                 Icon(
-                  Icons.folder,
-                  color: Colors.amber,
+                  widget.node.data.name == '此电脑'
+                      ? Icons.computer
+                      : Icons.folder,
+                  color: widget.node.data.name == '此电脑'
+                      ? Colors.blueGrey
+                      : Colors.amber,
                   shadows: [
                     Shadow(
                       color: Colors.black,

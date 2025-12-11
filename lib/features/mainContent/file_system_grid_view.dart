@@ -34,34 +34,44 @@ class _FileSystemGridViewState extends State<FileSystemGridView> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        return GridView.builder(
-          gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-            maxCrossAxisExtent: 180,
-            mainAxisExtent: 150,
-            crossAxisSpacing: widget.crossAxisSpacing,
-            mainAxisSpacing: widget.mainAxisSpacing,
-            childAspectRatio: 1,
-          ),
-          itemCount: widget.entities.length,
-          itemBuilder: (context, index) {
-            final entity = widget.entities[index];
-            return FileSystemEntityGridItem(
-              name: entity.name,
-              icon: entity.icon,
-              iconColor: entity.iconColor,
-              isSelected: _selectedItemName == entity.name,
-              onTap: (itemName) {
-                _selectedItemName = itemName;
-                setState(() {});
-              },
-              onDoubleTap: () {
-                widget.onItemDoubleTap?.call(entity);
-              },
-              onSecondaryTapDown: widget.onItemSecondaryTapDown != null
-                  ? (details) => widget.onItemSecondaryTapDown!(entity, details)
-                  : null,
-            );
+        return GestureDetector(
+          onTap: () {
+            _selectedItemName = null;
+            setState(() {});
           },
+          // onSecondaryTapDown: (details) {
+          //   // TODO: implement secondary tap
+          // },
+          child: GridView.builder(
+            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: 180,
+              mainAxisExtent: 150,
+              crossAxisSpacing: widget.crossAxisSpacing,
+              mainAxisSpacing: widget.mainAxisSpacing,
+              childAspectRatio: 1,
+            ),
+            itemCount: widget.entities.length,
+            itemBuilder: (context, index) {
+              final entity = widget.entities[index];
+              return FileSystemEntityGridItem(
+                name: entity.name,
+                icon: entity.icon,
+                iconColor: entity.iconColor,
+                isSelected: _selectedItemName == entity.name,
+                onTap: (itemName) {
+                  _selectedItemName = itemName;
+                  setState(() {});
+                },
+                onDoubleTap: () {
+                  widget.onItemDoubleTap?.call(entity);
+                },
+                onSecondaryTapDown: widget.onItemSecondaryTapDown != null
+                    ? (details) =>
+                          widget.onItemSecondaryTapDown!(entity, details)
+                    : null,
+              );
+            },
+          ),
         );
       },
     );

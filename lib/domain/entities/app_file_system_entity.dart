@@ -220,11 +220,23 @@ class AppFileSystemEntity {
   // ========== 文件信息（委托给具体实现） ==========
 
   /// 获取实体大小
-  Future<int> get size async {
+  Future<int> get fileSize async {
     if (_cachedSize != null) return _cachedSize!;
     final stat = await _fileSystemEntity.stat();
     _cachedSize = stat.size;
     return _cachedSize!;
+  }
+
+  /// 获取实体大小（包含子项，目录专用）
+  Future<int> get directorySize async {
+    if (_cachedSize != null) return _cachedSize!;
+    if (isDirectory) {
+      final directory = _typedEntity as AppDirectory;
+      _cachedSize = await directory.size;
+      return _cachedSize!;
+    } else {
+      throw StateError('实体不是目录: $path');
+    }
   }
 
   /// 获取最后修改时间
@@ -392,17 +404,15 @@ class AppFileSystemEntity {
 
   /// 重命名实体
   Future<AppFileSystemEntity> rename(String newPath) async {
-    FileSystemEntity newEntity;
-
-    if (_typedEntity is AppFile) {
-      final file = _typedEntity;
-      newEntity = (await file.rename(newPath)) as FileSystemEntity;
-    } else {
+    if (isDirectory) {
       final directory = _typedEntity as AppDirectory;
-      newEntity = (await directory.rename(newPath)) as FileSystemEntity;
+      final newDirectory = await directory.rename(newPath);
+      return AppFileSystemEntity.fromAppDirectory(newDirectory);
+    } else {
+      final file = _typedEntity;
+      final newFile = await file.rename(newPath);
+      return AppFileSystemEntity.fromAppFile(newFile);
     }
-
-    return AppFileSystemEntity._internal(newEntity);
   }
 
   /// 复制实体
@@ -447,7 +457,25 @@ class AppFileSystemEntity {
   /// 获取人类可读的大小
   Future<String> getFormattedSize() async {
     if (isFile) {
-      return Utils.formatBytes(await size);
+      return Utils.formatBytes(await fileSize);
+    } else {
+      return Utils.formatBytes(await directorySize);
+    }
+  }
+
+  /// 获取人类可读的大小（仅文件）
+  Future<String> getFormattedFileSize() async {
+    if (isFile) {
+      return Utils.formatBytes(await fileSize);
+    } else {
+      return '';
+    }
+  }
+
+  /// 获取人类可读的大小（仅目录）
+  Future<String> getFormattedDirectorySize() async {
+    if (isDirectory) {
+      return Utils.formatBytes(await directorySize);
     } else {
       return '';
     }
@@ -461,7 +489,7 @@ class AppFileSystemEntity {
         path: path,
         name: name,
         type: 'file',
-        size: await size,
+        size: await fileSize,
         formattedSize: await getFormattedSize(),
         extension: extension,
         mimeType: file.mimeType,
@@ -479,7 +507,7 @@ class AppFileSystemEntity {
         path: path,
         name: name,
         type: 'directory',
-        size: await size,
+        size: await directorySize,
         formattedSize: await getFormattedSize(),
         extension: '',
         mimeType: null,
@@ -562,8 +590,9 @@ class AppFileSystemEntity {
 
   @override
   String toString() {
-    final typeStr = _typedEntity is AppFile ? 'File' : 'Directory';
-    return 'AppFileSystemEntity{$typeStr: $path}';
+    final typeStr = isFile ? 'File' : 'Directory';
+    final iconStr = isFile ? '📄' : '📁';
+    return '$iconStr $typeStr: $name ($path)';
   }
 }
 
@@ -571,21 +600,21 @@ class AppFileSystemEntity {
 
 /// 实体统计信息
 class EntityStats {
-  final String path;
-  final String name;
+  final String path; // 路径
+  final String name; // 名称
   final String type; // 'file' 或 'directory'
-  final int size;
-  final String formattedSize;
-  final String extension;
-  final String? mimeType;
-  final String fileType;
-  final DateTime? modifiedTime;
-  final DateTime? createdTime;
-  final bool isHidden;
-  final bool isReadable;
-  final bool isWritable;
-  final int? fileCount; // 仅目录有
-  final int? directoryCount; // 仅目录有
+  final int size; // 字节大小
+  final String formattedSize; // 格式化大小
+  final String extension; // 扩展名
+  final String? mimeType; // MIME类型（仅文件有）
+  final String fileType; // 文件类型描述（仅文件有）
+  final DateTime? modifiedTime; // 修改时间
+  final DateTime? createdTime; // 创建时间
+  final bool isHidden; // 是否隐藏
+  final bool isReadable; // 是否可读
+  final bool isWritable; // 是否可写
+  final int? fileCount; // 文件数量仅目录有
+  final int? directoryCount; // 目录数量仅目录有
 
   const EntityStats({
     required this.path,
@@ -607,10 +636,14 @@ class EntityStats {
 
   @override
   String toString() {
+    final modifiedStr = modifiedTime != null
+        ? '${modifiedTime!.year}-${modifiedTime!.month.toString().padLeft(2, '0')}-${modifiedTime!.day.toString().padLeft(2, '0')} ${modifiedTime!.hour.toString().padLeft(2, '0')}:${modifiedTime!.minute.toString().padLeft(2, '0')}'
+        : '未知时间';
+
     if (type == 'file') {
-      return 'File: $name, Size: $formattedSize, Type: $fileType';
+      return 'File: $name ($path), Size: $formattedSize, Type: $fileType, Extension: $extension, MIME: ${mimeType ?? '未知'}, Modified: $modifiedStr, Hidden: $isHidden, Readable: $isReadable, Writable: $isWritable';
     } else {
-      return 'Directory: $name, Files: $fileCount, Size: $formattedSize';
+      return 'Directory: $name ($path), Files: $fileCount, Directories: $directoryCount, Size: $formattedSize, Modified: $modifiedStr, Hidden: $isHidden, Readable: $isReadable, Writable: $isWritable';
     }
   }
 }

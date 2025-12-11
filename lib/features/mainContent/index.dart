@@ -4,8 +4,15 @@ import 'package:win_explorer/domain/entities/app_directory.dart';
 import 'package:win_explorer/domain/entities/app_file_system_entity.dart';
 import 'package:win_explorer/features/home/index.dart';
 import 'package:win_explorer/features/home/this_computer.dart';
+import 'package:win_explorer/features/explorer/presentation/dialogs/entity_property_dialog.dart';
+import 'package:win_explorer/features/explorer/presentation/dialogs/create_directory_dialog.dart';
+import 'package:win_explorer/features/explorer/presentation/dialogs/delete_dialog.dart';
+import 'package:win_explorer/features/explorer/presentation/dialogs/create_file_dialog.dart';
+import 'package:win_explorer/features/explorer/presentation/dialogs/rename_entity_dialog.dart';
+import 'package:win_explorer/features/mainContent/file_system_context_menu.dart';
 import 'file_system_grid_view.dart';
 import 'file_system_list_view.dart';
+import 'package:path/path.dart' as p;
 
 class MainContent extends StatefulWidget {
   final double left;
@@ -36,6 +43,11 @@ class MainContent extends StatefulWidget {
 class _MainContentState extends State<MainContent> {
   List<AppFileSystemEntity> _entities = [];
   bool _isLoading = false;
+
+  /// 刷新内容
+  Future<void> refresh() async {
+    await _loadContents();
+  }
 
   @override
   void didUpdateWidget(MainContent oldWidget) {
@@ -92,16 +104,49 @@ class _MainContentState extends State<MainContent> {
       right: widget.right,
       top: widget.top,
       bottom: widget.bottom,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border.all(color: Colors.black, width: 1),
+      child: GestureDetector(
+        onSecondaryTapDown: (details) {
+          // TODO: 实现右键空白区域菜单
+          FileSystemContextMenu.showForDirectory(
+            context: context,
+            position: details.globalPosition,
+            directory: widget.directory!,
+            onAction: (action) async {
+              switch (action) {
+                case ContextMenuAction.newFile:
+                  await _createFile();
+                  break;
+                case ContextMenuAction.newDirectory:
+                  await _createDirectory();
+                  break;
+                case ContextMenuAction.refresh:
+                  await refresh();
+                  break;
+                case ContextMenuAction.paste:
+                  await _pasteEntity();
+                  break;
+                case ContextMenuAction.properties:
+                  await _showProperties();
+                  break;
+                default:
+                  break;
+              }
+            },
+          );
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border.all(color: Colors.black, width: 1),
+          ),
+          child: widget.directory == null
+              ? const Center(child: Text('请选择一个文件夹'))
+              : _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : widget.viewType == ViewType.grid
+              ? _buildGridView()
+              : _buildListView(),
         ),
-        child: widget.directory == null
-            ? const Center(child: Text('请选择一个文件夹'))
-            : _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : widget.viewType == ViewType.grid ? _buildGridView() : _buildListView(),
       ),
     );
   }
@@ -124,7 +169,26 @@ class _MainContentState extends State<MainContent> {
         }
       },
       onItemSecondaryTapDown: (entity, details) {
-        _showContextMenu(context, details.globalPosition, entity);
+        FileSystemContextMenu.showForEntity(
+          context: context,
+          position: details.globalPosition,
+          entity: entity,
+          onAction: (action) async {
+            switch (action) {
+              case ContextMenuAction.open:
+                await _openEntity(entity);
+                break;
+              case ContextMenuAction.properties:
+                await _showEntityProperties(entity);
+                break;
+              case ContextMenuAction.refresh:
+                await refresh();
+                break;
+              default:
+                break;
+            }
+          },
+        );
       },
     );
   }
@@ -147,36 +211,149 @@ class _MainContentState extends State<MainContent> {
         }
       },
       onItemSecondaryTapDown: (entity, details) {
-        _showContextMenu(context, details.globalPosition, entity);
+        FileSystemContextMenu.showForEntity(
+          context: context,
+          position: details.globalPosition,
+          entity: entity,
+          onAction: (action) async {
+            switch (action) {
+              case ContextMenuAction.open:
+                await _openEntity(entity);
+                break;
+              case ContextMenuAction.properties:
+                await _showEntityProperties(entity);
+                break;
+              case ContextMenuAction.cut:
+                await _cutEntity(entity);
+                break;
+              case ContextMenuAction.copy:
+                await _copyEntity(entity);
+                break;
+              case ContextMenuAction.rename:
+                await _renameEntity(entity);
+                break;
+              case ContextMenuAction.delete:
+                await _deleteEntity(entity);
+                break;
+              default:
+                break;
+            }
+          },
+        );
       },
     );
   }
 
-  void _showContextMenu(
-    BuildContext context,
-    Offset position,
-    AppFileSystemEntity entity,
-  ) {
-    final isDir = entity is AppDirectory;
-    showMenu(
+  /// 打开文件
+  Future<void> _openEntity(AppFileSystemEntity entity) async {
+    if (entity.isDirectory) {
+      widget.onDirectoryDoubleTap?.call(entity.asAppDirectory!);
+    } else {
+      Process.run('explorer', [entity.path]);
+    }
+  }
+
+  /// 显示文件属性
+  Future<void> _showEntityProperties(AppFileSystemEntity entity) async {
+    await showDialog(
       context: context,
-      position: RelativeRect.fromLTRB(
-        position.dx,
-        position.dy,
-        position.dx + 1,
-        position.dy + 1,
-      ),
-      items: [
-        PopupMenuItem(value: 'open', child: Text(isDir ? '打开文件夹' : '打开文件')),
-        PopupMenuItem(value: 'properties', child: Text('属性')),
-      ],
-    ).then((value) {
-      if (value == 'open') {
-        print('Open ${entity.path}');
-      } else if (value == 'properties') {
-        // TODO: Implement properties action
-        print('Properties ${entity.path}');
+      builder: (BuildContext context) => EntityPropertyDialog(entity: entity),
+    );
+  }
+
+  /// 剪切文件
+  Future<void> _cutEntity(AppFileSystemEntity entity) async {
+    if (entity.isDirectory) {
+      widget.onDirectoryDoubleTap?.call(entity.asAppDirectory!);
+    } else {
+      Process.run('explorer', ['/select,', entity.path]);
+    }
+  }
+
+  /// 复制文件
+  Future<void> _copyEntity(AppFileSystemEntity entity) async {
+    // TODO: 待实现
+  }
+
+  /// 删除文件
+  Future<void> _deleteEntity(AppFileSystemEntity entity) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) => DeleteDialog(entity: entity),
+    );
+    if (confirmed == true) {
+      if (entity.isDirectory) {
+        await entity.asAppDirectory!.deleteRecursively();
+      } else {
+        await entity.asAppFile!.delete();
       }
-    });
+      await _loadContents();
+    }
+  }
+
+  /// 重命名文件
+  Future<void> _renameEntity(AppFileSystemEntity entity) async {
+    final newName = await showDialog<String>(
+      context: context,
+      builder: (BuildContext context) => RenameEntityDialog(entity: entity),
+    );
+    if (newName != null && newName.isNotEmpty && newName != entity.name) {
+      final parentPath = p.dirname(entity.path);
+      final newPath = '$parentPath${Platform.pathSeparator}$newName';
+      await entity.rename(newPath);
+      await _loadContents();
+    }
+  }
+
+  /// 在资源管理器中显示文件
+  Future<void> _showFileInExplorer(AppFileSystemEntity entity) async {
+    if (entity.isDirectory) {
+      widget.onDirectoryDoubleTap?.call(entity.asAppDirectory!);
+    } else {
+      Process.run('explorer', ['/select,', entity.path]);
+    }
+  }
+
+  /// 创建文件
+  Future<void> _createFile() async {
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) => CreateFileDialog(
+        onCreate: (name, extension) async {
+          final fileName = '$name.$extension';
+          final path =
+              '${widget.directory!.path}${Platform.pathSeparator}$fileName';
+          if (!await File(path).exists()) {
+            await File(path).create(recursive: true);
+          }
+          await _loadContents();
+        },
+      ),
+    );
+  }
+
+  /// 创建文件夹
+  Future<void> _createDirectory() async {
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) => CreateDirectoryDialog(
+        onCreate: (name) async {
+          await widget.directory!.createSubdirectory(name);
+          await _loadContents();
+        },
+      ),
+    );
+  }
+
+  Future<void> _pasteEntity() async {
+    // TODO: 粘贴文件
+  }
+
+  Future<void> _showProperties() async {
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) =>
+          EntityPropertyDialog(entity: widget.directory!.asAppEntity),
+    );
   }
 }

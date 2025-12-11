@@ -29,6 +29,8 @@ class _HomePageState extends State<HomePage> {
   final List<AppDirectory> _history = [];
   int _historyIndex = -1;
 
+  final GlobalKey _mainContentKey = GlobalKey();
+
   void _navigateTo(AppDirectory directory) {
     print('Navigating to ${directory}');
     if (_currentDirectory?.path == directory.path) return;
@@ -92,9 +94,8 @@ class _HomePageState extends State<HomePage> {
                 onBack: _goBack,
                 onForward: _goForward,
                 onUp: _goUp,
-                onRefresh: () {
-                  setState(() {}); // 触发重建以刷新
-                },
+                onRefresh: () async =>
+                    await (_mainContentKey.currentState as dynamic)?.refresh(),
                 canGoBack: _historyIndex > 0,
                 canGoForward: _historyIndex < _history.length - 1,
               ),
@@ -109,6 +110,7 @@ class _HomePageState extends State<HomePage> {
                       onDirectorySelected: _navigateTo,
                     ),
                     MainContent(
+                      key: _mainContentKey,
                       left: _sliderWidth,
                       right: 0,
                       top: 0,
