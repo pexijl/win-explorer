@@ -105,57 +105,61 @@ class MainContentState extends State<MainContent> {
       right: widget.right,
       top: widget.top,
       bottom: widget.bottom,
-      child: GestureDetector(
-        onSecondaryTapDown: (details) {
-          FileSystemContextMenu.showForDirectory(
-            context: context,
-            position: details.globalPosition,
-            directory: widget.directory!,
-            onAction: (action) async {
-              switch (action) {
-                case ContextMenuAction.newFile:
-                  await _createFile();
-                  break;
-                case ContextMenuAction.newDirectory:
-                  await _createDirectory();
-                  break;
-                case ContextMenuAction.refresh:
-                  await refresh();
-                  break;
-                case ContextMenuAction.paste:
-                  await _pasteEntities();
-                  break;
-                case ContextMenuAction.properties:
-                  await _showProperties();
-                  break;
-                default:
-                  break;
-              }
-            },
-          );
-        },
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border.all(color: Colors.black, width: 1),
-          ),
-          child: widget.directory == null
-              ? const Center(child: Text('请选择一个文件夹'))
-              : _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : widget.viewType == ViewType.grid
-              ? _buildGridView()
-              : _buildListView(),
-        ),
-      ),
+      child: widget.directory?.path == '此电脑'
+          ? ThisComputer(
+              onItemDoubleTap: (drive) {
+                widget.onDirectoryDoubleTap?.call(
+                  AppDirectory(path: drive.mountPoint, name: drive.name),
+                );
+              },
+            )
+          : GestureDetector(
+              onSecondaryTapDown: (details) {
+                FileSystemContextMenu.showForDirectory(
+                  context: context,
+                  position: details.globalPosition,
+                  directory: widget.directory!,
+                  onAction: (action) async {
+                    switch (action) {
+                      case ContextMenuAction.newFile:
+                        await _createFile();
+                        break;
+                      case ContextMenuAction.newDirectory:
+                        await _createDirectory();
+                        break;
+                      case ContextMenuAction.refresh:
+                        await refresh();
+                        break;
+                      case ContextMenuAction.paste:
+                        await _pasteEntities();
+                        break;
+                      case ContextMenuAction.properties:
+                        await _showProperties();
+                        break;
+                      default:
+                        break;
+                    }
+                  },
+                );
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border.all(color: Colors.black, width: 1),
+                ),
+                child: widget.directory == null
+                    ? const Center(child: Text('请选择一个文件夹'))
+                    : _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : widget.viewType == ViewType.grid
+                    ? _buildGridView()
+                    : _buildListView(),
+              ),
+            ),
     );
   }
 
   Widget _buildGridView() {
-    if (widget.directory?.path == '此电脑') {
-      return const ThisComputer();
-    }
-
     if (_entities.isEmpty) {
       return const Center(child: Text('文件夹为空'));
     }
@@ -203,10 +207,6 @@ class MainContentState extends State<MainContent> {
   }
 
   Widget _buildListView() {
-    if (widget.directory?.path == '此电脑') {
-      return const ThisComputer();
-    }
-
     if (_entities.isEmpty) {
       return const Center(child: Text('文件夹为空'));
     }

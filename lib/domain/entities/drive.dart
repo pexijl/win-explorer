@@ -1,3 +1,4 @@
+import 'package:win_explorer/core/utils/utils.dart';
 import 'package:win_explorer/domain/entities/app_directory.dart';
 
 /// 表示一个物理或逻辑驱动器（如 C:\, D:\）
@@ -98,6 +99,17 @@ class Drive {
 
   /// 获取驱动器的盘符（例如，对于 mountPoint "C:\"，返回 "C"）
   String get driveLetter => mountPoint.substring(0, mountPoint.indexOf(':'));
+
+  /// 获取已用空间（格式化后的字符串，如 "65.5 GB"）
+  String getFormattedTotalSize() {
+    return Utils.formatBytes(totalSize);
+  }
+
+  /// 获取可用空间（格式化后的字符串，如 "20.3 GB"）
+  String getFormattedFreeSpace() {
+    return Utils.formatBytes(freeSpace);
+  }
+
 
   /// 获取一个简短的描述信息
   String get description {
