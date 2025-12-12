@@ -38,10 +38,10 @@ class MainContent extends StatefulWidget {
   });
 
   @override
-  State<MainContent> createState() => _MainContentState();
+  State<MainContent> createState() => MainContentState();
 }
 
-class _MainContentState extends State<MainContent> {
+class MainContentState extends State<MainContent> {
   List<AppFileSystemEntity> _entities = [];
   bool _isLoading = false;
 

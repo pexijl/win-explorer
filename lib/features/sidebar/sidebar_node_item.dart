@@ -31,6 +31,8 @@ class _SidebarNodeItemState extends State<SidebarNodeItem> {
   /// 鼠标悬停
   bool _isHovered = false;
 
+  static const _animationDuration = Duration(milliseconds: 180);
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -45,16 +47,21 @@ class _SidebarNodeItemState extends State<SidebarNodeItem> {
           cursor: SystemMouseCursors.click,
           onEnter: (event) => setState(() => _isHovered = true),
           onExit: (event) => setState(() => _isHovered = false),
-          child: Container(
+          child: AnimatedContainer(
+            duration: _animationDuration,
+            curve: Curves.easeInOut,
             decoration: BoxDecoration(
               color: _isHovered
-                  ? Theme.of(
-                      context,
-                    ).colorScheme.primaryContainer.withValues(alpha: 0.5)
+                  ? Theme.of(context)
+                      .colorScheme
+                      .primaryContainer
+                      .withValues(alpha: 0.5)
                   : (widget.node.data.path == widget.path
-                        ? Theme.of(context).colorScheme.secondaryContainer
-                              .withValues(alpha: 0.8)
-                        : null),
+                      ? Theme.of(context)
+                          .colorScheme
+                          .secondaryContainer
+                          .withValues(alpha: 0.8)
+                      : null),
             ),
             child: Row(
               children: [
@@ -65,11 +72,14 @@ class _SidebarNodeItemState extends State<SidebarNodeItem> {
                   ),
                   child: widget.node.hasChildren
                       ? IconButton(
-                          icon: Icon(
-                            widget.node.isExpanded
-                                ? Icons.expand_more
-                                : Icons.chevron_right,
-                            size: 24,
+                          icon: AnimatedRotation(
+                            turns: widget.node.isExpanded ? 0.25 : 0.0,
+                            duration: _animationDuration,
+                            curve: Curves.easeInOut,
+                            child: Icon(
+                              Icons.chevron_right,
+                              size: 24,
+                            ),
                           ),
                           onPressed: () {
                             widget.onToggleNode(widget.node);

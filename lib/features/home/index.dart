@@ -29,7 +29,7 @@ class _HomePageState extends State<HomePage> {
   final List<AppDirectory> _history = [];
   int _historyIndex = -1;
 
-  final GlobalKey _mainContentKey = GlobalKey();
+  final GlobalKey<MainContentState> _mainContentKey = GlobalKey();
 
   void _navigateTo(AppDirectory directory) {
     print('Navigating to ${directory}');
@@ -43,7 +43,7 @@ class _HomePageState extends State<HomePage> {
       }
       _history.add(directory);
       _historyIndex = _history.length - 1;
-      _currentDirectory = directory;
+      _currentDirectory = directory; 
     });
   }
 
@@ -94,8 +94,9 @@ class _HomePageState extends State<HomePage> {
                 onBack: _goBack,
                 onForward: _goForward,
                 onUp: _goUp,
-                onRefresh: () async =>
-                    await (_mainContentKey.currentState as dynamic)?.refresh(),
+                onRefresh: () async {
+                  await _mainContentKey.currentState?.refresh();
+                },
                 canGoBack: _historyIndex > 0,
                 canGoForward: _historyIndex < _history.length - 1,
               ),
