@@ -6,6 +6,15 @@ import 'package:win_explorer/core/utils/utils.dart';
 import 'package:win_explorer/domain/entities/app_directory.dart';
 import 'package:win_explorer/domain/entities/app_file.dart';
 
+const List<String> imageExtensions = [
+  '.png',
+  '.jpg',
+  '.jpeg',
+  '.gif',
+  '.bmp',
+  '.webp',
+];
+
 // ========== 自定义异常类 ==========
 
 /// 文件系统实体异常基类
@@ -123,6 +132,14 @@ class AppFileSystemEntity {
 
   /// 检查是否是目录
   bool get isDirectory => _fileSystemEntity is Directory;
+
+  /// 检查是否是快捷方式
+  bool get isLink => _fileSystemEntity is Link;
+
+  /// 检查是否为图片
+  bool get isImage {
+    return isFile && imageExtensions.contains(extension);
+  }
 
   /// 转换为 AppFile（如果是文件）
   AppFile? get asAppFile => _typedEntity is AppFile ? _typedEntity : null;
@@ -259,6 +276,8 @@ class AppFileSystemEntity {
   IconData get icon {
     if (isDirectory) {
       return Icons.folder;
+    } else if (isImage) {
+      return Icons.image;
     } else {
       return Icons.insert_drive_file;
     }

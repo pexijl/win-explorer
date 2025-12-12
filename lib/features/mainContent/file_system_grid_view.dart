@@ -49,8 +49,7 @@ class _FileSystemGridViewState extends State<FileSystemGridView> {
             itemBuilder: (context, index) {
               final entity = widget.entities[index];
               return FileSystemEntityGridItem(
-                name: entity.name,
-                icon: entity.icon,
+                entity: entity,
                 iconColor: entity.iconColor,
                 isSelected: _selectedItemName == entity.name,
                 onTap: (itemName) {

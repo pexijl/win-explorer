@@ -1,9 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:flutter/widget_previews.dart';
+import 'package:win_explorer/domain/entities/app_file_system_entity.dart';
 
 class FileSystemEntityGridItem extends StatefulWidget {
-  final String name;
-  final IconData icon;
+  final AppFileSystemEntity entity;
   final MaterialColor? iconColor;
   final Function(String)? onTap;
   final VoidCallback? onDoubleTap;
@@ -13,8 +14,7 @@ class FileSystemEntityGridItem extends StatefulWidget {
 
   const FileSystemEntityGridItem({
     super.key,
-    required this.name,
-    this.icon = Icons.help_center,
+    required this.entity,
     this.iconColor = Colors.grey,
     this.onTap,
     this.onDoubleTap,
@@ -49,7 +49,7 @@ class _FileSystemEntityGridItemState extends State<FileSystemEntityGridItem> {
           }
         } else {
           _tapCount = 1;
-          widget.onTap?.call(widget.name);
+          widget.onTap?.call(widget.entity.name);
         }
         _lastTap = now;
       },
@@ -73,11 +73,19 @@ class _FileSystemEntityGridItemState extends State<FileSystemEntityGridItem> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(widget.icon, size: 100.0, color: widget.iconColor),
+              if (widget.entity.isImage)
+                Image.file(
+                  widget.entity.asAppFile!.file,
+                  width: 100.0,
+                  height: 100.0,
+                  fit: BoxFit.scaleDown,
+                )
+              else
+                Icon(widget.entity.icon, size: 100.0, color: widget.iconColor),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 32.0),
                 child: Text(
-                  widget.name,
+                  widget.entity.name,
                   textAlign: TextAlign.center,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -96,9 +104,4 @@ class _FileSystemEntityGridItemState extends State<FileSystemEntityGridItem> {
       ),
     );
   }
-}
-
-@Preview(name: 'FolderGridItem Preview')
-Widget folderGridItemPreview() {
-  return FileSystemEntityGridItem(name: 'Folder Name');
 }
