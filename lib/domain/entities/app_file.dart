@@ -362,16 +362,6 @@ class AppFile {
     return await copy(newPath);
   }
 
-  /// 移动文件到新位置
-  Future<AppFile> move(String newPath) async {
-    try {
-      final newFile = await _file.rename(newPath);
-      return AppFile.fromFile(newFile);
-    } catch (e) {
-      throw Exception('移动文件失败: $e');
-    }
-  }
-
   /// 移动文件到目录
   Future<AppFile> moveToDirectory(String directoryPath) async {
     final newPath = path_utils.join(directoryPath, name);
@@ -380,8 +370,22 @@ class AppFile {
 
   /// 重命名文件
   Future<AppFile> rename(String newName) async {
-    final newPath = path_utils.join(parentPath, newName);
-    return await move(newPath);
+    try {
+      final newFile = await _file.rename(newName);
+      return AppFile.fromFile(newFile);
+    } catch (e) {
+      throw Exception('重命名文件失败: $e');
+    }
+  }
+
+  /// 移动文件到新位置
+  Future<AppFile> move(String newPath) async {
+    try {
+      final newFile = await _file.rename(newPath);
+      return AppFile.fromFile(newFile);
+    } catch (e) {
+      throw Exception('移动文件失败: $e');
+    }
   }
 
   /// 删除文件
