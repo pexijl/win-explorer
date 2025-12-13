@@ -167,6 +167,7 @@ class MainContentState extends State<MainContent> {
 
     return FileSystemGridView(
       entities: _entities,
+      selectedPaths: _selectedPaths,
       onItemTap: (entity) {},
       onItemDoubleTap: (entity) {
         if (entity.isDirectory) {
@@ -196,7 +197,7 @@ class MainContentState extends State<MainContent> {
                 await _renameEntity(entity);
                 break;
               case ContextMenuAction.delete:
-                await _deleteEntity(entity);
+                await _deleteEntityBatch(_selectedPaths);
                 break;
               default:
                 break;

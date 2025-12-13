@@ -1,12 +1,13 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:win_explorer/domain/entities/app_file_system_entity.dart';
 
 class FileSystemEntityGridItem extends StatefulWidget {
   final AppFileSystemEntity entity;
   final MaterialColor? iconColor;
-  final Function(String)? onTap;
+  final Function(String?)? onTap;
   final VoidCallback? onDoubleTap;
   final Function(TapDownDetails)? onSecondaryTapDown;
   final Color? textColor;
@@ -49,7 +50,12 @@ class _FileSystemEntityGridItemState extends State<FileSystemEntityGridItem> {
           }
         } else {
           _tapCount = 1;
-          widget.onTap?.call(widget.entity.name);
+          bool isCtrlPressed = HardwareKeyboard.instance.isControlPressed;
+          if (isCtrlPressed) {
+            widget.onTap?.call(widget.entity.path);
+          } else {
+            widget.onTap?.call(null);
+          }
         }
         _lastTap = now;
       },

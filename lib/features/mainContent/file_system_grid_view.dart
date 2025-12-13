@@ -4,6 +4,7 @@ import 'package:win_explorer/features/mainContent/file_system_entity_grid_item.d
 
 class FileSystemGridView extends StatefulWidget {
   final List<AppFileSystemEntity> entities;
+  final Set<String> selectedPaths;
   final int crossAxisCount;
   final double crossAxisSpacing;
   final double mainAxisSpacing;
@@ -14,6 +15,7 @@ class FileSystemGridView extends StatefulWidget {
   const FileSystemGridView({
     super.key,
     required this.entities,
+    required this.selectedPaths,
     this.crossAxisCount = 3,
     this.crossAxisSpacing = 0.0,
     this.mainAxisSpacing = 0.0,
@@ -27,15 +29,17 @@ class FileSystemGridView extends StatefulWidget {
 }
 
 class _FileSystemGridViewState extends State<FileSystemGridView> {
-  String? _selectedItemName;
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
         return GestureDetector(
           onTap: () {
-            _selectedItemName = null;
-            setState(() {});
+            // 点击空白处取消所有选择
+            setState(() {
+              // TODO: 添加一个回调函数，通知父组件取消选择
+              widget.selectedPaths.clear();
+            });
           },
           child: GridView.builder(
             gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
@@ -51,12 +55,26 @@ class _FileSystemGridViewState extends State<FileSystemGridView> {
               return FileSystemEntityGridItem(
                 entity: entity,
                 iconColor: entity.iconColor,
-                isSelected: _selectedItemName == entity.name,
-                onTap: (itemName) {
-                  _selectedItemName = itemName;
-                  setState(() {});
+                isSelected: widget.selectedPaths.contains(entity.path),
+                onTap: (itemPath) {
+                  setState(() {
+                    if (itemPath != null) {
+                      // TODO: 添加一个回调函数 onSelectionChanged ，通知父组件选择
+
+                      // 按住Ctrl键点击时，需要进行添加选中或删除选中
+                      if (widget.selectedPaths.contains(itemPath)) {
+                        widget.selectedPaths.remove(itemPath);
+                      } else {
+                        widget.selectedPaths.add(itemPath);
+                      }
+                    } else {
+                      widget.selectedPaths.clear();
+                      widget.selectedPaths.add(entity.path);
+                    }
+                  });
                 },
                 onDoubleTap: () {
+                  widget.selectedPaths.clear();
                   widget.onItemDoubleTap?.call(entity);
                 },
                 onSecondaryTapDown: widget.onItemSecondaryTapDown != null

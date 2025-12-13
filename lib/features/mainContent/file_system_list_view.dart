@@ -100,6 +100,7 @@ class _FileSystemListViewState extends State<FileSystemListView> {
       onTap: () {
         // 点击空白处取消所有选中
         setState(() {
+          // TODO: 添加一个回调函数，通知父组件取消选择
           widget.selectedPaths.clear();
         });
       },
@@ -116,7 +117,14 @@ class _FileSystemListViewState extends State<FileSystemListView> {
             isSelected: widget.selectedPaths.contains(entity.path),
             onTap: (itemPath) {
               if (itemPath != null) {
-                widget.selectedPaths.add(itemPath);
+                // TODO: 添加一个回调函数 onSelectionChanged ，通知父组件选择
+
+                // 点击复选框或按住Ctrl键点击时，需要进行添加选中或删除选中
+                if (widget.selectedPaths.contains(itemPath)) {
+                  widget.selectedPaths.remove(itemPath);
+                } else {
+                  widget.selectedPaths.add(itemPath);
+                }
               } else {
                 widget.selectedPaths.clear();
                 widget.selectedPaths.add(entity.path);
