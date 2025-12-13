@@ -27,29 +27,37 @@ class _ThisComputerState extends State<ThisComputer> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(color: Colors.white),
-      child: GridView.builder(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 5,
-          childAspectRatio: 3,
-          crossAxisSpacing: 8,
+    return GestureDetector(
+      onTap: () {
+        // 点击空白处取消所有选择
+        setState(() {
+          _selectedDriveId = 'VasyaMambo';
+        });
+      },
+      child: Container(
+        decoration: BoxDecoration(color: Colors.white),
+        child: GridView.builder(
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 5,
+            childAspectRatio: 3,
+            crossAxisSpacing: 8,
+          ),
+          itemCount: drives.length,
+          itemBuilder: (context, index) {
+            final drive = drives[index];
+            return DriveItem(
+              drive: drive,
+              isSelected: _selectedDriveId == drive.id,
+              onTap: (driveId) {
+                _selectedDriveId = driveId;
+                setState(() {});
+              },
+              onDoubleTap: () {
+                widget.onItemDoubleTap?.call(drive);
+              },
+            );
+          },
         ),
-        itemCount: drives.length,
-        itemBuilder: (context, index) {
-          final drive = drives[index];
-          return DriveItem(
-            drive: drive,
-            isSelected: _selectedDriveId == drive.id,
-            onTap: (driveId) {
-              _selectedDriveId = driveId;
-              setState(() {});
-            },
-            onDoubleTap: () {
-              widget.onItemDoubleTap?.call(drive);
-            },
-          );
-        },
       ),
     );
   }
