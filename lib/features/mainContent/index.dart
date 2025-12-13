@@ -43,6 +43,7 @@ class MainContent extends StatefulWidget {
 
 class MainContentState extends State<MainContent> {
   List<AppFileSystemEntity> _entities = [];
+  final Set<String> _selectedPaths = {};
   bool _isLoading = false;
 
   /// 刷新内容
@@ -213,6 +214,7 @@ class MainContentState extends State<MainContent> {
 
     return FileSystemListView(
       entities: _entities,
+      selectedPaths: _selectedPaths,
       onItemTap: (entity) {},
       onItemDoubleTap: (entity) {
         if (entity.isDirectory) {
@@ -242,7 +244,7 @@ class MainContentState extends State<MainContent> {
                 await _renameEntity(entity);
                 break;
               case ContextMenuAction.delete:
-                await _deleteEntity(entity);
+                await _deleteEntityBatch(_selectedPaths);
                 break;
               default:
                 break;
@@ -342,6 +344,40 @@ class MainContentState extends State<MainContent> {
         await entity.asAppDirectory!.deleteRecursively();
       } else {
         await entity.asAppFile!.delete();
+      }
+      await _loadContents();
+    }
+  }
+
+  /// 删除文件
+  Future<void> _deleteEntityBatch(Set<String> paths) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        content: Text(
+          '确定要删除所选的 ${paths.length} 项文件吗？',
+          style: TextStyle(fontSize: 16),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('取消', style: TextStyle(fontSize: 16)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('删除', style: TextStyle(fontSize: 16)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      for (final path in paths) {
+        final entity = await AppFileSystemEntity.fromPath(path);
+        if (entity.isDirectory) {
+          await entity.asAppDirectory!.deleteRecursively();
+        } else {
+          await entity.asAppFile!.delete();
+        }
       }
       await _loadContents();
     }

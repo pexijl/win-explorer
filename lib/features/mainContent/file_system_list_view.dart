@@ -4,6 +4,7 @@ import 'package:win_explorer/features/mainContent/file_system_entity_list_item.d
 
 class FileSystemListView extends StatefulWidget {
   final List<AppFileSystemEntity> entities;
+  final Set<String> selectedPaths;
   final Function(AppFileSystemEntity)? onItemTap;
   final Function(AppFileSystemEntity)? onItemDoubleTap;
   final Function(AppFileSystemEntity, TapDownDetails)? onItemSecondaryTapDown;
@@ -11,6 +12,7 @@ class FileSystemListView extends StatefulWidget {
   const FileSystemListView({
     super.key,
     required this.entities,
+    required this.selectedPaths,
     this.onItemTap,
     this.onItemDoubleTap,
     this.onItemSecondaryTapDown,
@@ -21,11 +23,10 @@ class FileSystemListView extends StatefulWidget {
 }
 
 class _FileSystemListViewState extends State<FileSystemListView> {
-  String? _selectedItemName;
   final double _nameColumnWidth = 300;
   final double _dateColumnWidth = 150;
   final double _typeColumnWidth = 150;
-  final double _sizeColumnWidth = 150;
+  final double _sizeColumnWidth = 100;
 
   Widget _listHeader() {
     return Container(
@@ -35,7 +36,32 @@ class _FileSystemListViewState extends State<FileSystemListView> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(width: 30, margin: const EdgeInsets.only(right: 8.0)),
+            // 全选/取消 checkbox
+            SizedBox(
+              width: 24,
+              height: 24,
+              child: Checkbox(
+                splashRadius: 14,
+                value: widget.selectedPaths.length == widget.entities.length
+                    ? true
+                    : widget.selectedPaths.isEmpty
+                    ? false
+                    : null,
+                tristate: true,
+                onChanged: (value) {
+                  setState(() {
+                    if (value == true) {
+                      widget.selectedPaths.addAll(
+                        widget.entities.map((e) => e.path),
+                      );
+                    } else {
+                      widget.selectedPaths.clear();
+                    }
+                  });
+                },
+              ),
+            ),
+            SizedBox(width: 38),
             Container(
               width: _nameColumnWidth,
               height: 24,
@@ -72,8 +98,10 @@ class _FileSystemListViewState extends State<FileSystemListView> {
   Widget _buildListView() {
     return GestureDetector(
       onTap: () {
-        _selectedItemName = null;
-        setState(() {});
+        // 点击空白处取消所有选中
+        setState(() {
+          widget.selectedPaths.clear();
+        });
       },
       child: ListView.builder(
         itemCount: widget.entities.length,
@@ -85,12 +113,20 @@ class _FileSystemListViewState extends State<FileSystemListView> {
             typeColumnWidth: _typeColumnWidth,
             sizeColumnWidth: _sizeColumnWidth,
             entity: entity,
-            isSelected: _selectedItemName == entity.name,
-            onTap: (itemName) {
-              _selectedItemName = itemName;
+            isSelected: widget.selectedPaths.contains(entity.path),
+            onTap: (itemPath) {
+              if (itemPath != null) {
+                widget.selectedPaths.add(itemPath);
+              } else {
+                widget.selectedPaths.clear();
+                widget.selectedPaths.add(entity.path);
+              }
               setState(() {});
             },
-            onDoubleTap: () => widget.onItemDoubleTap?.call(entity),
+            onDoubleTap: () {
+              widget.selectedPaths.clear();
+              widget.onItemDoubleTap?.call(entity);
+            },
             onSecondaryTapDown: (details) {
               widget.onItemSecondaryTapDown?.call(entity, details);
             },

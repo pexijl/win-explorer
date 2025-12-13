@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:win_explorer/domain/entities/app_file_system_entity.dart';
 
 class FileSystemEntityListItem extends StatefulWidget {
@@ -7,7 +8,7 @@ class FileSystemEntityListItem extends StatefulWidget {
   final double typeColumnWidth;
   final double sizeColumnWidth;
   final AppFileSystemEntity entity;
-  final Function(String)? onTap;
+  final Function(String?)? onTap;
   final VoidCallback? onDoubleTap;
   final Function(TapDownDetails)? onSecondaryTapDown;
   final bool isSelected;
@@ -54,7 +55,12 @@ class _FileSystemEntityListItemState extends State<FileSystemEntityListItem> {
               }
             } else {
               _tapCount = 1;
-              widget.onTap?.call(widget.entity.name);
+              bool isCtrlPressed = HardwareKeyboard.instance.isControlPressed;
+              if (isCtrlPressed) {
+                widget.onTap?.call(widget.entity.path);
+              } else {
+                widget.onTap?.call(null);
+              }
             }
             _lastTap = now;
           },
@@ -81,6 +87,18 @@ class _FileSystemEntityListItemState extends State<FileSystemEntityListItem> {
               ),
               child: Row(
                 children: [
+                  // 复选框
+                  SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: Checkbox(
+                      value: widget.isSelected,
+                      splashRadius: 14,
+                      onChanged: (value) {
+                        widget.onTap?.call(widget.entity.path);
+                      },
+                    ),
+                  ),
                   // 图标
                   Container(
                     width: 30,
