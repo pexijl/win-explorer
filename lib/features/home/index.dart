@@ -24,6 +24,7 @@ class _HomePageState extends State<HomePage> {
   MouseCursor _currentCursor = SystemMouseCursors.basic;
   int _currentEntityCount = 0;
   ViewType _currentViewType = ViewType.list;
+  String _searchQuery = '';
 
   AppDirectory? _currentDirectory;
   final List<AppDirectory> _history = [];
@@ -43,7 +44,7 @@ class _HomePageState extends State<HomePage> {
       }
       _history.add(directory);
       _historyIndex = _history.length - 1;
-      _currentDirectory = directory; 
+      _currentDirectory = directory;
     });
   }
 
@@ -78,6 +79,12 @@ class _HomePageState extends State<HomePage> {
     _navigateTo(AppDirectory(path: path));
   }
 
+  void _handleSearchChanged(String query) {
+    setState(() {
+      _searchQuery = query;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -91,6 +98,8 @@ class _HomePageState extends State<HomePage> {
                 height: 50,
                 currentDirectory: _currentDirectory,
                 onPathChanged: _handlePathChanged,
+                searchQuery: _searchQuery,
+                onSearchChanged: _handleSearchChanged,
                 onBack: _goBack,
                 onForward: _goForward,
                 onUp: _goUp,
@@ -118,6 +127,7 @@ class _HomePageState extends State<HomePage> {
                       bottom: 30,
                       viewType: _currentViewType,
                       directory: _currentDirectory,
+                      searchQuery: _searchQuery,
                       onDirectoryDoubleTap: _navigateTo,
                       onTotalEntitiesChanged: (total) {
                         setState(() => _currentEntityCount = total);

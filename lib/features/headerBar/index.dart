@@ -5,6 +5,8 @@ class HeaderBar extends StatefulWidget {
   final double height;
   final AppDirectory? currentDirectory;
   final Function(String) onPathChanged;
+  final String searchQuery;
+  final ValueChanged<String>? onSearchChanged;
   final VoidCallback? onBack;
   final VoidCallback? onForward;
   final VoidCallback? onUp;
@@ -17,6 +19,8 @@ class HeaderBar extends StatefulWidget {
     required this.height,
     this.currentDirectory,
     required this.onPathChanged,
+    this.searchQuery = '',
+    this.onSearchChanged,
     this.onBack,
     this.onForward,
     this.onUp,
@@ -31,7 +35,9 @@ class HeaderBar extends StatefulWidget {
 
 class _HeaderBarState extends State<HeaderBar> {
   late TextEditingController _pathController;
+  late TextEditingController _searchController;
   final FocusNode _pathFocusNode = FocusNode();
+  final FocusNode _searchFocusNode = FocusNode();
 
   @override
   void initState() {
@@ -39,6 +45,7 @@ class _HeaderBarState extends State<HeaderBar> {
     _pathController = TextEditingController(
       text: widget.currentDirectory?.path ?? '',
     );
+    _searchController = TextEditingController(text: widget.searchQuery);
   }
 
   @override
@@ -49,12 +56,20 @@ class _HeaderBarState extends State<HeaderBar> {
         _pathController.text = widget.currentDirectory?.path ?? '';
       }
     }
+
+    if (widget.searchQuery != oldWidget.searchQuery) {
+      if (!_searchFocusNode.hasFocus) {
+        _searchController.text = widget.searchQuery;
+      }
+    }
   }
 
   @override
   void dispose() {
     _pathController.dispose();
     _pathFocusNode.dispose();
+    _searchController.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
   }
 
@@ -165,15 +180,18 @@ class _HeaderBarState extends State<HeaderBar> {
                 border: Border.all(color: Colors.grey[400]!),
                 borderRadius: BorderRadius.circular(4),
               ),
-              child: const TextField(
-                decoration: InputDecoration(
+              child: TextField(
+                controller: _searchController,
+                focusNode: _searchFocusNode,
+                decoration: const InputDecoration(
                   hintText: '搜索',
                   prefixIcon: Icon(Icons.search, size: 18, color: Colors.grey),
                   border: InputBorder.none,
-                  contentPadding: EdgeInsets.only(top: 10), // Center vertically
+                  contentPadding: EdgeInsets.only(top: 10),
                   isDense: true,
                 ),
-                style: TextStyle(fontSize: 13),
+                style: const TextStyle(fontSize: 13),
+                onChanged: widget.onSearchChanged,
               ),
             ),
           ),

@@ -4,6 +4,7 @@ import 'package:path/path.dart' as path_util;
 import 'package:win_explorer/domain/entities/app_directory.dart';
 import 'package:win_explorer/domain/entities/app_file_system_entity.dart';
 import 'package:win_explorer/domain/entities/clipboard_manager.dart';
+import 'package:win_explorer/core/utils/search_filter.dart';
 import 'package:win_explorer/features/home/index.dart';
 import 'package:win_explorer/features/home/this_computer.dart';
 import 'package:win_explorer/features/explorer/presentation/dialogs/entity_property_dialog.dart';
@@ -22,6 +23,7 @@ class MainContent extends StatefulWidget {
   final double bottom;
   final ViewType viewType;
   final AppDirectory? directory;
+  final String searchQuery;
   final Function(AppDirectory)? onDirectoryDoubleTap;
   final Function(int)? onTotalEntitiesChanged;
 
@@ -33,6 +35,7 @@ class MainContent extends StatefulWidget {
     required this.bottom,
     required this.viewType,
     this.directory,
+    this.searchQuery = '',
     this.onDirectoryDoubleTap,
     this.onTotalEntitiesChanged,
   });
@@ -46,6 +49,20 @@ class MainContentState extends State<MainContent> {
   final Set<String> _selectedPaths = {};
   bool _isLoading = false;
 
+  List<AppFileSystemEntity> get _visibleEntities =>
+      filterByQuery(_entities, (entity) => entity.name, widget.searchQuery);
+
+  void _notifyVisibleCount() {
+    final callback = widget.onTotalEntitiesChanged;
+    if (callback == null) return;
+
+    final count = _visibleEntities.length;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      callback(count);
+    });
+  }
+
   /// 刷新内容
   Future<void> refresh() async {
     await _loadContents();
@@ -56,6 +73,11 @@ class MainContentState extends State<MainContent> {
     super.didUpdateWidget(oldWidget);
     if (widget.directory?.path != oldWidget.directory?.path) {
       _loadContents();
+      return;
+    }
+
+    if (widget.searchQuery != oldWidget.searchQuery) {
+      _notifyVisibleCount();
     }
   }
 
@@ -70,6 +92,7 @@ class MainContentState extends State<MainContent> {
       setState(() {
         _entities = [];
       });
+      _notifyVisibleCount();
       return;
     }
 
@@ -84,8 +107,7 @@ class MainContentState extends State<MainContent> {
           _entities = entities;
           _isLoading = false;
         });
-        // 加载完成后调用回调
-        widget.onTotalEntitiesChanged?.call(entities.length);
+        _notifyVisibleCount();
       }
     } catch (e) {
       if (mounted) {
@@ -93,8 +115,7 @@ class MainContentState extends State<MainContent> {
           _entities = [];
           _isLoading = false;
         });
-        // 出错时传递0
-        widget.onTotalEntitiesChanged?.call(0);
+        _notifyVisibleCount();
       }
     }
   }
@@ -165,8 +186,13 @@ class MainContentState extends State<MainContent> {
       return const Center(child: Text('文件夹为空'));
     }
 
+    final visibleEntities = _visibleEntities;
+    if (visibleEntities.isEmpty) {
+      return const Center(child: Text('未找到匹配项'));
+    }
+
     return FileSystemGridView(
-      entities: _entities,
+      entities: visibleEntities,
       selectedPaths: _selectedPaths,
       onItemTap: (entity) {},
       onItemDoubleTap: (entity) {
@@ -213,8 +239,13 @@ class MainContentState extends State<MainContent> {
       return const Center(child: Text('文件夹为空'));
     }
 
+    final visibleEntities = _visibleEntities;
+    if (visibleEntities.isEmpty) {
+      return const Center(child: Text('未找到匹配项'));
+    }
+
     return FileSystemListView(
-      entities: _entities,
+      entities: visibleEntities,
       selectedPaths: _selectedPaths,
       onItemTap: (entity) {},
       onItemDoubleTap: (entity) {
