@@ -127,9 +127,6 @@ class _FileSystemListViewState extends State<FileSystemListView> {
       child: Container(
         width: width,
         height: 24,
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.red, width: 0),
-        ),
         margin: const EdgeInsets.only(right: 16.0),
         alignment: Alignment.centerLeft,
         child: Row(
