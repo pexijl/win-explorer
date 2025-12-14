@@ -62,12 +62,32 @@ class _FileSystemListViewState extends State<FileSystemListView> {
               ),
             ),
             SizedBox(width: 38),
-            Container(
-              width: _nameColumnWidth,
-              height: 24,
-              margin: const EdgeInsets.only(right: 16.0),
-              alignment: Alignment.centerLeft,
-              child: const Text('名称', style: TextStyle(color: Colors.black)),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  // TODO: 添加根据名称排序的功能，点击切换升序和降序
+                   
+                });
+              },
+              style: ButtonStyle(
+                padding: WidgetStateProperty.all(EdgeInsets.zero),
+                minimumSize: WidgetStateProperty.all(Size.zero),
+                shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                  RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(0),
+                  ),
+                ),
+              ),
+              child: Container(
+                width: _nameColumnWidth,
+                height: 24,
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.red, width: 0),
+                ),
+                margin: const EdgeInsets.only(right: 16.0),
+                alignment: Alignment.centerLeft,
+                child: const Text('名称', style: TextStyle(color: Colors.black)),
+              ),
             ),
             Container(
               width: _dateColumnWidth,
