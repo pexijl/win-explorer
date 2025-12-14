@@ -30,22 +30,34 @@ class _FileSystemListViewState extends State<FileSystemListView> {
   
   // 排序相关状态
   bool _sortAscending = true; // true: 升序, false: 降序
+  List<AppFileSystemEntity>? _cachedSortedEntities;
+  List<AppFileSystemEntity>? _lastEntities;
+  bool? _lastSortAscending;
 
   /// 获取排序后的实体列表
   List<AppFileSystemEntity> get _sortedEntities {
-    final List<AppFileSystemEntity> sorted = List.from(widget.entities);
-    
-    sorted.sort((a, b) {
-      // 文件夹始终在文件前面
-      if (a.isDirectory && !b.isDirectory) return -1;
-      if (!a.isDirectory && b.isDirectory) return 1;
+    // 如果实体列表或排序顺序发生变化，重新排序
+    if (_cachedSortedEntities == null ||
+        _lastEntities != widget.entities ||
+        _lastSortAscending != _sortAscending) {
+      final List<AppFileSystemEntity> sorted = List.from(widget.entities);
       
-      // 同类型按名称排序
-      final comparison = a.name.toLowerCase().compareTo(b.name.toLowerCase());
-      return _sortAscending ? comparison : -comparison;
-    });
+      sorted.sort((a, b) {
+        // 文件夹始终在文件前面
+        if (a.isDirectory && !b.isDirectory) return -1;
+        if (!a.isDirectory && b.isDirectory) return 1;
+        
+        // 同类型按名称排序
+        final comparison = a.name.toLowerCase().compareTo(b.name.toLowerCase());
+        return _sortAscending ? comparison : -comparison;
+      });
+      
+      _cachedSortedEntities = sorted;
+      _lastEntities = widget.entities;
+      _lastSortAscending = _sortAscending;
+    }
     
-    return sorted;
+    return _cachedSortedEntities!;
   }
 
   Widget _listHeader() {
