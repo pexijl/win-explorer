@@ -27,8 +27,42 @@ class _FileSystemListViewState extends State<FileSystemListView> {
   final double _dateColumnWidth = 150;
   final double _typeColumnWidth = 150;
   final double _sizeColumnWidth = 100;
+  
+  // 排序相关状态
+  bool _sortAscending = true; // true: 升序, false: 降序
+  List<AppFileSystemEntity>? _cachedSortedEntities;
+  List<AppFileSystemEntity>? _lastEntities;
+  bool? _lastSortAscending;
+
+  /// 获取排序后的实体列表
+  List<AppFileSystemEntity> get _sortedEntities {
+    // 如果实体列表或排序顺序发生变化，重新排序
+    if (_cachedSortedEntities == null ||
+        _lastEntities != widget.entities ||
+        _lastSortAscending != _sortAscending) {
+      final List<AppFileSystemEntity> sorted = List.from(widget.entities);
+      
+      sorted.sort((a, b) {
+        // 文件夹始终在文件前面
+        if (a.isDirectory && !b.isDirectory) return -1;
+        if (!a.isDirectory && b.isDirectory) return 1;
+        
+        // 同类型按名称排序
+        final comparison = a.name.toLowerCase().compareTo(b.name.toLowerCase());
+        return _sortAscending ? comparison : -comparison;
+      });
+      
+      _cachedSortedEntities = sorted;
+      _lastEntities = widget.entities;
+      _lastSortAscending = _sortAscending;
+    }
+    
+    return _cachedSortedEntities!;
+  }
 
   Widget _listHeader() {
+    final sortedEntities = _sortedEntities;
+    
     return Container(
       alignment: Alignment.centerLeft,
       child: Container(
@@ -42,7 +76,7 @@ class _FileSystemListViewState extends State<FileSystemListView> {
               height: 24,
               child: Checkbox(
                 splashRadius: 14,
-                value: widget.selectedPaths.length == widget.entities.length
+                value: widget.selectedPaths.length == sortedEntities.length
                     ? true
                     : widget.selectedPaths.isEmpty
                     ? false
@@ -52,7 +86,7 @@ class _FileSystemListViewState extends State<FileSystemListView> {
                   setState(() {
                     if (value == true) {
                       widget.selectedPaths.addAll(
-                        widget.entities.map((e) => e.path),
+                        sortedEntities.map((e) => e.path),
                       );
                     } else {
                       widget.selectedPaths.clear();
@@ -62,12 +96,43 @@ class _FileSystemListViewState extends State<FileSystemListView> {
               ),
             ),
             SizedBox(width: 38),
-            Container(
-              width: _nameColumnWidth,
-              height: 24,
-              margin: const EdgeInsets.only(right: 16.0),
-              alignment: Alignment.centerLeft,
-              child: const Text('名称', style: TextStyle(color: Colors.black)),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  // 切换排序顺序
+                  _sortAscending = !_sortAscending;
+                });
+              },
+              style: ButtonStyle(
+                padding: WidgetStateProperty.all(EdgeInsets.zero),
+                minimumSize: WidgetStateProperty.all(Size.zero),
+                shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                  RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(0),
+                  ),
+                ),
+              ),
+              child: Container(
+                width: _nameColumnWidth,
+                height: 24,
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.red, width: 0),
+                ),
+                margin: const EdgeInsets.only(right: 16.0),
+                alignment: Alignment.centerLeft,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('名称', style: TextStyle(color: Colors.black)),
+                    const SizedBox(width: 4),
+                    Icon(
+                      _sortAscending ? Icons.arrow_upward : Icons.arrow_downward,
+                      size: 14,
+                      color: Colors.black54,
+                    ),
+                  ],
+                ),
+              ),
             ),
             Container(
               width: _dateColumnWidth,
@@ -96,6 +161,8 @@ class _FileSystemListViewState extends State<FileSystemListView> {
   }
 
   Widget _buildListView() {
+    final sortedEntities = _sortedEntities;
+    
     return GestureDetector(
       onTap: () {
         // 点击空白处取消所有选中
@@ -105,9 +172,9 @@ class _FileSystemListViewState extends State<FileSystemListView> {
         });
       },
       child: ListView.builder(
-        itemCount: widget.entities.length,
+        itemCount: sortedEntities.length,
         itemBuilder: (context, index) {
-          final entity = widget.entities[index];
+          final entity = sortedEntities[index];
           return FileSystemEntityListItem(
             nameColumnWidth: _nameColumnWidth,
             dateColumnWidth: _dateColumnWidth,
