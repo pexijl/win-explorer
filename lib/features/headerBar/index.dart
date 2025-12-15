@@ -97,16 +97,23 @@ class _HeaderBarState extends State<HeaderBar> {
       child: Row(
         children: [
           // Navigation Buttons
-          _buildNavButton(Icons.arrow_back, widget.onBack, widget.canGoBack),
+          _buildNavButton(
+            Icons.arrow_back,
+            widget.onBack,
+            widget.canGoBack,
+            '后退',
+          ),
           _buildNavButton(
             Icons.arrow_forward,
             widget.onForward,
             widget.canGoForward,
+            '前进',
           ),
           _buildNavButton(
             Icons.arrow_upward,
             widget.onUp,
             widget.currentDirectory != null,
+            '向上',
           ),
 
           const SizedBox(width: 8),
@@ -200,13 +207,19 @@ class _HeaderBarState extends State<HeaderBar> {
     );
   }
 
-  Widget _buildNavButton(IconData icon, VoidCallback? onPressed, bool enabled) {
+  Widget _buildNavButton(
+    IconData icon,
+    VoidCallback? onPressed,
+    bool enabled,
+    String toolTip,
+  ) {
     return IconButton(
       icon: Icon(icon, size: 20),
       onPressed: enabled ? onPressed : null,
       color: Colors.black87,
       disabledColor: Colors.grey[300],
       splashRadius: 20,
+      tooltip: toolTip,
     );
   }
 }

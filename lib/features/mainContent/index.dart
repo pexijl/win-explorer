@@ -198,6 +198,8 @@ class MainContentState extends State<MainContent> {
       onItemDoubleTap: (entity) {
         if (entity.isDirectory) {
           widget.onDirectoryDoubleTap?.call(entity.asAppDirectory!);
+        } else {
+          _openEntity(entity);
         }
       },
       onItemSecondaryTapDown: (entity, details) {
@@ -251,6 +253,8 @@ class MainContentState extends State<MainContent> {
       onItemDoubleTap: (entity) {
         if (entity.isDirectory) {
           widget.onDirectoryDoubleTap?.call(entity.asAppDirectory!);
+        } else {
+          _openEntity(entity);
         }
       },
       onItemSecondaryTapDown: (entity, details) {
