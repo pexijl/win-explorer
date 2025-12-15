@@ -426,9 +426,32 @@ class MainContentState extends State<MainContent> {
       builder: (BuildContext context) => RenameEntityDialog(entity: entity),
     );
     if (newName != null && newName.isNotEmpty && newName != entity.name) {
+      final parentPath = path_util.dirname(entity.path);
+      final newPath = '$parentPath${Platform.pathSeparator}$newName';
+
+      // 检查是否存在同类型的同名文件或文件夹
+      final newEntityType = FileSystemEntity.typeSync(newPath);
+      if (newEntityType != FileSystemEntityType.notFound) {
+        final isConflict =
+            (entity.isDirectory &&
+                newEntityType == FileSystemEntityType.directory) ||
+            (!entity.isDirectory && newEntityType == FileSystemEntityType.file);
+        if (isConflict) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                width: 300,
+                duration: Duration(seconds: 1),
+                behavior: SnackBarBehavior.floating,
+                content: Text('已存在同名${entity.isDirectory ? '文件夹' : '文件'}'),
+              ),
+            );
+          }
+          return;
+        }
+      }
+
       try {
-        final parentPath = path_util.dirname(entity.path);
-        final newPath = '$parentPath${Platform.pathSeparator}$newName';
         await entity.rename(newPath);
         await _loadContents();
         if (mounted) {
