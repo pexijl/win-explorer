@@ -77,10 +77,14 @@ class _FileSystemGridViewState extends State<FileSystemGridView> {
                   widget.selectedPaths.clear();
                   widget.onItemDoubleTap?.call(entity);
                 },
-                onSecondaryTapDown: widget.onItemSecondaryTapDown != null
-                    ? (details) =>
-                          widget.onItemSecondaryTapDown!(entity, details)
-                    : null,
+                onSecondaryTapDown: (details) {
+                  if (!widget.selectedPaths.contains(entity.path)) {
+                    widget.selectedPaths.clear();
+                    widget.selectedPaths.add(entity.path);
+                    setState(() {});
+                  }
+                  widget.onItemSecondaryTapDown?.call(entity, details);
+                },
               );
             },
           ),

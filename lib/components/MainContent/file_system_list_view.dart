@@ -31,7 +31,7 @@ class _FileSystemListViewState extends State<FileSystemListView> {
   final double _dateColumnWidth = 150;
   final double _typeColumnWidth = 150;
   final double _sizeColumnWidth = 100;
-  
+
   // 排序相关状态
   bool _sortAscending = true; // true: 升序, false: 降序
   _SortField _sortField = _SortField.name;
@@ -119,9 +119,7 @@ class _FileSystemListViewState extends State<FileSystemListView> {
         padding: WidgetStateProperty.all(EdgeInsets.zero),
         minimumSize: WidgetStateProperty.all(Size.zero),
         shape: WidgetStateProperty.all<RoundedRectangleBorder>(
-          RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(0),
-          ),
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
         ),
       ),
       child: Container(
@@ -152,21 +150,21 @@ class _FileSystemListViewState extends State<FileSystemListView> {
         _statCache.clear();
       }
       final List<AppFileSystemEntity> sorted = List.from(widget.entities);
-      
+
       sorted.sort(_compareEntities);
-      
+
       _cachedSortedEntities = sorted;
       _lastEntities = widget.entities;
       _lastSortAscending = _sortAscending;
       _lastSortField = _sortField;
     }
-    
+
     return _cachedSortedEntities!;
   }
 
   Widget _listHeader() {
     final sortedEntities = _sortedEntities;
-    
+
     return Container(
       alignment: Alignment.centerLeft,
       child: Container(
@@ -212,7 +210,7 @@ class _FileSystemListViewState extends State<FileSystemListView> {
 
   Widget _buildListView() {
     final sortedEntities = _sortedEntities;
-    
+
     return GestureDetector(
       onTap: () {
         // 点击空白处取消所有选中
@@ -253,6 +251,11 @@ class _FileSystemListViewState extends State<FileSystemListView> {
               widget.onItemDoubleTap?.call(entity);
             },
             onSecondaryTapDown: (details) {
+              if (!widget.selectedPaths.contains(entity.path)) {
+                widget.selectedPaths.clear();
+                widget.selectedPaths.add(entity.path);
+                setState(() {});
+              }
               widget.onItemSecondaryTapDown?.call(entity, details);
             },
           );
