@@ -3,7 +3,7 @@
 ```
 lib/
 ├── main.dart                  # 入口文件
-├── app.dart                   # MaterialApp/FluentApp 配置，全局 Provider/Bloc 注入
+├── app.dart                   # 应用入口 (初始化)
 ├── core/                      # 核心通用模块 (不包含具体业务逻辑)
 │   ├── constants/             # 常量 (如尺寸、默认路径、API Key)
 │   ├── theme/                 # 主题配置 (暗色/亮色模式，自定义颜色)

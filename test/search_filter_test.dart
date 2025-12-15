@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:win_explorer/core/utils/search_filter.dart';
+import 'package:win_explorer/utils/search_filter.dart';
 
 void main() {
   test('filterByQuery: empty query returns all', () {

@@ -1,10 +1,10 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:win_explorer/data/services/win32_drive_service.dart';
-import 'package:win_explorer/domain/entities/app_directory.dart';
-import 'package:win_explorer/domain/entities/app_file_system_entity.dart';
-import 'package:win_explorer/domain/entities/drive.dart';
+import 'package:win_explorer/services/win32_drive_service.dart';
+import 'package:win_explorer/entities/app_directory.dart';
+import 'package:win_explorer/entities/app_file_system_entity.dart';
+import 'package:win_explorer/entities/drive.dart';
 
 void main() {
   test("1", () async {
