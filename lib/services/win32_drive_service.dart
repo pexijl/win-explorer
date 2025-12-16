@@ -33,7 +33,6 @@ class Win32DriveService {
               drives.add(drive);
             }
           } catch (e) {
-            print('获取驱动器 $mountPoint 信息失败: $e');
             // 继续处理其他驱动器
           }
         }
@@ -44,7 +43,7 @@ class Win32DriveService {
         drives.addAll(_getDrivesByStrings());
       }
     } catch (e) {
-      print('获取系统驱动器时发生错误: $e');
+      // 处理异常
     }
 
     return drives;
@@ -81,7 +80,7 @@ class Win32DriveService {
             drives.add(drive);
           }
         } catch (e) {
-          print('获取驱动器 $drivePath 信息失败: $e');
+          // 获取驱动器信息失败，继续处理其他驱动器
         }
 
         // 计算下一个字符串起始位置（当前字符串长度 + 1）
@@ -146,7 +145,7 @@ class Win32DriveService {
         // 如果卷标为空，使用默认名称
         if (volumeName.isEmpty) {
           volumeName = _getDefaultDriveName(driveType, driveLetter);
-        }else{
+        } else {
           volumeName = '$volumeName ($driveLetter:)';
         }
       } else {
@@ -232,7 +231,6 @@ class Win32DriveService {
     // 这里可以实现使用 Windows API 监听驱动器变化的逻辑
     // 例如使用 RegisterDeviceNotification 等 API
     // 由于实现较复杂，这里只提供框架
-    print('驱动器变化监听器已启动');
   }
 
   /// 刷新驱动器信息
@@ -249,7 +247,6 @@ class Win32DriveService {
         orElse: () => throw Exception('驱动器 $driveLetter 未找到'),
       );
     } catch (e) {
-      print('获取驱动器 $driveLetter 详情失败: $e');
       return null;
     }
   }

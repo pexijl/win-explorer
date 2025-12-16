@@ -733,18 +733,6 @@ class EntityTree {
     required this.children,
     required this.depth,
   });
-
-  Future<void> printTree({String indent = ''}) async {
-    final isDir = entity.isDirectory;
-    final icon = isDir ? '📁' : '📄';
-    print('$indent$icon ${entity.name}');
-
-    for (int i = 0; i < children.length; i++) {
-      final isLast = i == children.length - 1;
-      final newIndent = '$indent${isLast ? '  ' : '│ '}';
-      await children[i].printTree(indent: newIndent);
-    }
-  }
 }
 
 // ========== 扩展方法 ==========

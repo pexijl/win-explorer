@@ -33,7 +33,6 @@ class _MainPageState extends State<MainPage> {
   final GlobalKey<MainContentState> _mainContentKey = GlobalKey();
 
   void _navigateTo(AppDirectory directory) {
-    print('Navigating to ${directory}');
     if (_currentDirectory?.path == directory.path) return;
 
     setState(() {

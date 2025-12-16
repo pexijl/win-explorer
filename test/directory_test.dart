@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:win_explorer/services/win32_drive_service.dart';
 import 'package:win_explorer/entities/app_directory.dart';

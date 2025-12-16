@@ -9,7 +9,6 @@ import 'package:win_explorer/pages/main_page.dart';
 import 'package:win_explorer/components/MainContent/this_computer.dart';
 import 'package:win_explorer/components/MainContent/entity_property_dialog.dart';
 import 'package:win_explorer/components/MainContent/create_directory_dialog.dart';
-import 'package:win_explorer/components/MainContent/delete_dialog.dart';
 import 'package:win_explorer/components/MainContent/create_file_dialog.dart';
 import 'package:win_explorer/components/MainContent/rename_entity_dialog.dart';
 import 'package:win_explorer/components/MainContent/file_system_context_menu.dart';
@@ -371,29 +370,6 @@ class MainContentState extends State<MainContent> {
   }
 
   /// 删除文件
-  Future<void> _deleteEntity(AppFileSystemEntity entity) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) => DeleteDialog(entity: entity),
-    );
-    if (confirmed == true) {
-      if (entity.isDirectory) {
-        await entity.asAppDirectory!.deleteRecursively();
-      } else {
-        await entity.asAppFile!.delete();
-      }
-      await _loadContents();
-
-      // 删除目录后，侧边栏需要更新父目录节点
-      if (widget.directory != null) {
-        FileSystemService.instance.notifyDirectoryChildrenChanged(
-          widget.directory!.path,
-        );
-      }
-    }
-  }
-
-  /// 删除文件
   Future<void> _deleteEntityBatch(Set<String> paths) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -491,15 +467,6 @@ class MainContentState extends State<MainContent> {
           );
         }
       }
-    }
-  }
-
-  /// 在资源管理器中显示文件
-  Future<void> _showFileInExplorer(AppFileSystemEntity entity) async {
-    if (entity.isDirectory) {
-      widget.onDirectoryDoubleTap?.call(entity.asAppDirectory!);
-    } else {
-      Process.run('explorer', ['/select,', entity.path]);
     }
   }
 

@@ -703,16 +703,6 @@ class DirectoryTree {
     required this.children,
     required this.depth,
   });
-
-  /// 打印树形结构
-  void printTree({String indent = ''}) {
-    print('$indent${directory.name}/');
-    for (int i = 0; i < children.length; i++) {
-      final isLast = i == children.length - 1;
-      final newIndent = '$indent${isLast ? '  ' : '│ '}';
-      children[i].printTree(indent: newIndent);
-    }
-  }
 }
 
 /// 文件重命名结果
