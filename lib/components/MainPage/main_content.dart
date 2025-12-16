@@ -15,6 +15,7 @@ import 'package:win_explorer/components/MainContent/rename_entity_dialog.dart';
 import 'package:win_explorer/components/MainContent/file_system_context_menu.dart';
 import 'package:win_explorer/components/MainContent/file_system_grid_view.dart';
 import 'package:win_explorer/components/MainContent/file_system_list_view.dart';
+import 'package:win_explorer/services/file_system_service.dart';
 
 class MainContent extends StatefulWidget {
   final double left;
@@ -382,6 +383,13 @@ class MainContentState extends State<MainContent> {
         await entity.asAppFile!.delete();
       }
       await _loadContents();
+
+      // 删除目录后，侧边栏需要更新父目录节点
+      if (widget.directory != null) {
+        FileSystemService.instance.notifyDirectoryChildrenChanged(
+          widget.directory!.path,
+        );
+      }
     }
   }
 
@@ -416,6 +424,13 @@ class MainContentState extends State<MainContent> {
         }
       }
       await _loadContents();
+
+      // 批量删除后，侧边栏需要更新父目录节点
+      if (widget.directory != null) {
+        FileSystemService.instance.notifyDirectoryChildrenChanged(
+          widget.directory!.path,
+        );
+      }
     }
   }
 
@@ -514,6 +529,11 @@ class MainContentState extends State<MainContent> {
         onCreate: (name) async {
           await widget.directory!.createSubdirectory(name);
           await _loadContents();
+
+          // 通知侧边栏刷新该目录的子目录节点
+          FileSystemService.instance.notifyDirectoryChildrenChanged(
+            widget.directory!.path,
+          );
         },
       ),
     );

@@ -4,10 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:win_explorer/entities/app_directory.dart';
 import 'package:win_explorer/components/Sidebar/sidebar_node_item.dart';
 import 'package:win_explorer/components/Sidebar/sidebar_tree_node.dart';
+import 'package:win_explorer/services/file_system_service.dart';
 
 class SidebarTreeView extends StatefulWidget {
   /// 根目录
   final List<AppDirectory> rootDirectories;
+
   /// 点击节点回调
   final Function(AppDirectory)? onNodeSelected;
 
@@ -22,10 +24,16 @@ class SidebarTreeView extends StatefulWidget {
 }
 
 class _SidebarTreeViewState extends State<SidebarTreeView> {
+  static const String _virtualThisComputerPath = '此电脑';
+
   /// 选中的节点路径
   String? _selectedNodePath;
+
   /// 滚动控制器
   final _scrollController = ScrollController();
+
+  StreamSubscription<FileSystemChange>? _fsSub;
+
   /// 树根
   SidebarTreeNode root = SidebarTreeNode(
     data: AppDirectory(path: '此电脑', name: '此电脑'),
@@ -38,13 +46,96 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
   void initState() {
     super.initState();
     _initTree(); // 初始化树
+
+    _fsSub = FileSystemService.instance.changes.listen((change) {
+      if (change.type == FileSystemChangeType.directoryChildrenChanged) {
+        if (change.directoryPath == _virtualThisComputerPath) return;
+        () async {
+          await _refreshDirectoryChildren(change.directoryPath);
+        }();
+      }
+    });
   }
 
   /// 销毁
   @override
   void dispose() {
+    _fsSub?.cancel();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  SidebarTreeNode? _findNodeByPath(String path) {
+    SidebarTreeNode? found;
+
+    void visit(SidebarTreeNode node) {
+      if (found != null) return;
+      if (node.data.path == path) {
+        found = node;
+        return;
+      }
+      for (final child in node.children) {
+        visit(child);
+      }
+    }
+
+    visit(root);
+    return found;
+  }
+
+  Future<void> _refreshDirectoryChildren(String directoryPath) async {
+    if (directoryPath == _virtualThisComputerPath) return;
+
+    final node = _findNodeByPath(directoryPath);
+    if (node == null) return;
+    if (node.data.path == _virtualThisComputerPath) return;
+
+    try {
+      final subDirectories = await node.data.getSubdirectories(
+        recursive: false,
+      );
+      final hasChildren = subDirectories.isNotEmpty;
+
+      node.hasChildren = hasChildren;
+
+      // 目录已经没有子目录了：清空缓存
+      if (!hasChildren) {
+        node.children.clear();
+        node.hasLoadedChildren = false;
+        node.isExpanded = false;
+        if (mounted) setState(() {});
+        return;
+      }
+
+      // 没加载过子节点：只更新 hasChildren，确保显示展开/折叠图标
+      if (!node.hasLoadedChildren) {
+        if (mounted) setState(() {});
+        return;
+      }
+
+      // 已加载过：同步 children（新增/删除）
+      final desiredPaths = subDirectories.map((d) => d.path).toSet();
+      node.children.removeWhere((c) => !desiredPaths.contains(c.data.path));
+
+      final existingPaths = node.children.map((c) => c.data.path).toSet();
+      final toAdd = subDirectories.where(
+        (d) => !existingPaths.contains(d.path),
+      );
+      final futures = toAdd
+          .map(
+            (dir) => SidebarTreeNode.create(data: dir, level: node.level + 1),
+          )
+          .toList();
+
+      if (futures.isNotEmpty) {
+        final newChildren = await Future.wait(futures);
+        node.children.addAll(newChildren);
+      }
+
+      if (mounted) setState(() {});
+    } catch (e) {
+      debugPrint(e.toString());
+    }
   }
 
   /// 初始化树
@@ -54,6 +145,11 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
         await SidebarTreeNode.create(data: directory, level: root.level + 1),
       );
     }
+
+    // “此电脑”是虚拟节点，子节点（盘符）由我们直接构建。
+    // 标记为已加载，避免展开时再去访问文件系统。
+    root.hasLoadedChildren = true;
+
     if (mounted) {
       setState(() {});
     }
@@ -61,9 +157,20 @@ class _SidebarTreeViewState extends State<SidebarTreeView> {
 
   /// 加载子节点
   Future<void> _loadChildren(SidebarTreeNode node) async {
+    // “此电脑”是虚拟节点，不从文件系统加载子节点。
+    if (node.data.path == _virtualThisComputerPath) {
+      node.hasLoadedChildren = true;
+      if (mounted) setState(() {});
+      return;
+    }
+
     try {
       AppDirectory directory = node.data;
       List<AppDirectory> subDirectories = await directory.getSubdirectories();
+
+      // 每次加载都刷新 hasChildren，避免首次为空后状态不更新
+      node.hasChildren = subDirectories.isNotEmpty;
+
       List<Future<SidebarTreeNode>> futures = subDirectories
           .map(
             (subDirectory) => SidebarTreeNode.create(
