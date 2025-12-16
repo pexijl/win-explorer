@@ -2,8 +2,8 @@ import 'dart:ffi'; // 使用 Dart 的 FFI 功能
 import 'package:ffi/ffi.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:win32/win32.dart';
-import 'package:win_explorer/data/services/win32_drive_service.dart';
-import 'package:win_explorer/domain/entities/drive.dart'; // 引入 win32 包
+import 'package:win_explorer/services/win32_drive_service.dart';
+import 'package:win_explorer/entities/drive.dart'; // 引入 win32 包
 
 void main() {
   test('win32_test', () {
